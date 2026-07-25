@@ -1,6 +1,6 @@
 use crate::deck::Deck;
 
-# [derive(Debug, Clone)]
+# [derive(Debug, Clone, PartialEq, Eq)]
 pub enum Order {
     Play,
     Draw
@@ -12,7 +12,5 @@ pub struct Game {
     pub p_mull: i32,
     pub p_order: Order,
     pub opp_deck: Deck,
-    pub opp_mull: i32,
-    pub opp_order: Order,
     pub win: bool,
 }

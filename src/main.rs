@@ -30,13 +30,12 @@ fn main() {
         format: Format::Pauper,
     };
 
-    let mut p1: Player = Player {
-        name: "Luis".to_string(),
-        decks: vec![],
-        win_per_deck: HashMap::from([]),
-        games_per_deck: HashMap::from([]),
-        game_history: vec![]
-    };
+    let mut p1: Player = Player::new(
+         "Luis".to_string(), 
+         vec![], 
+         vec![], 
+         HashMap::from([])
+    );
 
     println!("{p1}");
 
@@ -49,8 +48,6 @@ fn main() {
         p_mull: 5, 
         p_order: Order::Draw,
         opp_deck: d4.clone(), 
-        opp_mull: 7, 
-        opp_order: Order::Play, 
         win: false 
     };
 
@@ -59,8 +56,6 @@ fn main() {
         p_mull: 5, 
         p_order: Order::Draw,
         opp_deck: d4.clone(), 
-        opp_mull: 7, 
-        opp_order: Order::Play, 
         win: false 
     };
 
@@ -69,19 +64,15 @@ fn main() {
         p_mull: 5, 
         p_order: Order::Draw,
         opp_deck: d4.clone(), 
-        opp_mull: 7, 
-        opp_order: Order::Play, 
         win: true 
     };
 
     let game4: Game = Game { 
-        p_deck: d2.clone(), 
+        p_deck: d1.clone(), 
         p_mull: 5, 
         p_order: Order::Draw,
-        opp_deck: d4.clone(), 
-        opp_mull: 7, 
-        opp_order: Order::Play, 
-        win: true 
+        opp_deck: d2.clone(), 
+        win: false
     };
 
     let game5: Game = Game { 
@@ -89,8 +80,6 @@ fn main() {
         p_mull: 5, 
         p_order: Order::Draw,
         opp_deck: d4.clone(), 
-        opp_mull: 7, 
-        opp_order: Order::Play, 
         win: true 
     };
 
@@ -100,7 +89,8 @@ fn main() {
     p1.add_game(&game4);
     p1.add_game(&game5);
  
-    let w = p1.calculate_win_rate();
-    println!("{:?}",w);
+    println!("{:?}",p1.win_rate);
+
+    p1.get_deck_stats(d1).unwrap();
 
 }
