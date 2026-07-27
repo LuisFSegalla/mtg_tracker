@@ -2,32 +2,28 @@ mod player;
 mod deck;
 mod game;
 
-use deck::{Deck, Format};
+use deck::{Deck};
 use player::Player;
-use std::{collections::HashMap, println, vec};
+use std::{println, vec};
 
-use crate::game::{Game, Order};
+use crate::game::{Game, Order, Format};
 
 fn main() {
 
     let d1: Deck = Deck{
         name: "Cycle Storm".to_string(),
-        format: Format::Pauper,
     };
 
     let d2: Deck = Deck{
         name: "Mono red madness".to_string(),
-        format: Format::Pauper,
     };
 
     let _d3: Deck = Deck{
         name: "Izzet Prowess".to_string(),
-        format: Format::Modern,
     };
 
     let d4: Deck = Deck{
         name: "Dimir terror".to_string(),
-        format: Format::Pauper,
     };
 
     let mut p1: Player = Player::new(
@@ -42,6 +38,7 @@ fn main() {
     println!("{p1}");
 
     let game1: Game = Game { 
+        format: Format::Pauper,
         p_deck: d1.clone(), 
         p_mull: 5, 
         p_order: Order::Draw,
@@ -50,6 +47,7 @@ fn main() {
     };
 
     let game2: Game = Game { 
+        format: Format::Pauper,
         p_deck: d1.clone(), 
         p_mull: 5, 
         p_order: Order::Draw,
@@ -58,6 +56,7 @@ fn main() {
     };
 
     let game3: Game = Game { 
+        format: Format::Pauper,
         p_deck: d1.clone(), 
         p_mull: 5, 
         p_order: Order::Draw,
@@ -66,6 +65,7 @@ fn main() {
     };
 
     let game4: Game = Game { 
+        format: Format::Pauper,
         p_deck: d1.clone(), 
         p_mull: 5, 
         p_order: Order::Draw,
@@ -74,6 +74,7 @@ fn main() {
     };
 
     let game5: Game = Game { 
+        format: Format::Pauper,
         p_deck: d2.clone(), 
         p_mull: 5, 
         p_order: Order::Draw,

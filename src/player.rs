@@ -1,5 +1,5 @@
-use crate::deck::{Deck, Format};
-use crate::game::{Game, Order};
+use crate::deck::{Deck};
+use crate::game::{Game, Order, Format};
 
 use std::{fmt, println, vec, write};
 use std::collections::HashMap;
@@ -108,12 +108,12 @@ impl Player {
                     .entry(g.opp_deck.clone())
                     .or_insert(0) += 1;
                 } 
-                else {
-                    let _ = *order_vs
-                    .entry(g.opp_deck.clone())
-                    .or_insert(0);
+                // else {
+                //     let _ = *order_vs
+                //     .entry(g.opp_deck.clone())
+                //     .or_insert(0);
                     
-                }
+                // }
 
                 if g.win {
                     *wins
@@ -160,20 +160,20 @@ mod tests {
     fn test_filled_player_creation() {
         let d1: Deck = Deck{
             name: "Cycle Storm".to_string(),
-            format: Format::Pauper,
         };
 
         let d2: Deck = Deck{
             name: "Mono red madness".to_string(),
-            format: Format::Pauper,
         };
 
         let game1: Game = Game { 
+            format: Format::Pauper,
             p_deck: d1.clone(), 
             p_mull: 5, 
             p_order: Order::Draw,
             opp_deck: d2.clone(), 
-            win: false 
+            win: false,
+
         };
 
         let mut p: Player = Player::new(
@@ -198,15 +198,14 @@ mod tests {
 
         let d3: Deck = Deck{
             name: "Izzet Prowess".to_string(),
-            format: Format::Modern,
         };
 
         let d4: Deck = Deck{
             name: "UW Belcher".to_string(),
-            format: Format::Modern,
         };
 
         let game2: Game = Game { 
+            format: Format::Modern,
             p_deck: d3.clone(), 
             p_mull: 5, 
             p_order: Order::Draw,
