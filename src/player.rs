@@ -1,17 +1,17 @@
-use crate::deck::{Deck};
-use crate::game::{Game, Order, Format};
+use crate::game::{Game, Order};
 
 use std::{fmt, println, vec, write};
 use std::collections::HashMap;
 
+
 #[derive(Debug, Clone)]
 pub struct Player {
     pub name: String,
-    pub decks: Vec<Deck>,
+    pub decks: Vec<String>,
     pub game_history: Vec<Game>,
-    pub win_rate: HashMap<Deck, f64>,
-    win_per_deck: HashMap<Deck, i32>,
-    games_per_deck: HashMap<Deck, i32>,
+    pub win_rate: HashMap<String, f64>,
+    win_per_deck: HashMap<String, i32>,
+    games_per_deck: HashMap<String, i32>,
 
 }
 
@@ -19,7 +19,7 @@ impl fmt::Display for Player {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Player: {}\n", self.name)?;
         for d in &self.decks {
-            write!(f, "Deck: {}\n", d.name)?;
+            write!(f, "Deck: {}\n", d)?;
             write!(f, "Wins: {}\n", self.win_per_deck.get(d).unwrap_or(&0))?;
             write!(f, "Total games: {}\n", self.games_per_deck.get(d).unwrap_or(&0))?;
 
@@ -30,7 +30,7 @@ impl fmt::Display for Player {
 
 
 impl Player {
-    pub fn new(name: String, decks: Vec<Deck>) -> Self{
+    pub fn new(name: String, decks: Vec<String>) -> Self{
         Player {
                 name: name,
                 decks: decks,
@@ -43,7 +43,7 @@ impl Player {
 
     pub fn add_game(&mut self, game: &Game) {
         if !self.decks.contains(&game.p_deck) {
-            println!("Adding {} to the decks list.", game.p_deck.name);
+            println!("Adding {} to the decks list.", game.p_deck);
             self.decks.push(game.p_deck.clone());
             self.games_per_deck.insert(
                 game.p_deck.clone(),
@@ -64,25 +64,25 @@ impl Player {
         self.calculate_deck_win_rate(&game.p_deck);
     }
 
-    pub fn calculate_deck_win_rate(&mut self, deck: &Deck) {
+    pub fn calculate_deck_win_rate(&mut self, deck: &String) {
         let games = *self.games_per_deck.get(deck).unwrap() as f64;
         let wins = *self.win_per_deck.get(deck).unwrap() as f64;
         *self.win_rate.entry(deck.clone()).or_insert(0.0) = (wins / games) as f64;
     }
 
 
-    pub fn get_deck_stats(&mut self, deck: Deck) -> Result<(), String>{
+    pub fn get_deck_stats(&mut self, deck: String) -> Result<(), String>{
         if !self.decks.contains(&deck) {
             Err("Deck not registered for this {self.name}".to_string())
         }
         else {
-            self.game_history.sort_by_key(|g| g.p_deck.name == deck.name);
+            self.game_history.sort_by_key(|g| g.p_deck == deck);
             
             // Sort the match history with a certain deck
             // and split it into a separate array to be worked on;
             let games_with_deck: Vec<Game> = 
             self.game_history.iter()
-            .filter(|val| val.p_deck.name == deck.name)
+            .filter(|val| val.p_deck== deck)
             .cloned()
             .collect();
 
@@ -92,11 +92,10 @@ impl Player {
                 .fold(0, |acc, x| acc + x.p_mull)
                 as f64
             ) / (games_with_deck.len() as f64);
-            println!("Average mull for {} is {}", self.name, avr_mull);
-
-            let mut played_against:HashMap<Deck, i32> =  HashMap::from([]);
-            let mut order_vs: HashMap<Deck, i32> = HashMap::from([]);
-            let mut wins: HashMap<Deck, i32> = HashMap::from([]); 
+           
+            let mut played_against:HashMap<String, i32> =  HashMap::from([]);
+            let mut order_vs: HashMap<String, i32> = HashMap::from([]);
+            let mut wins: HashMap<String, i32> = HashMap::from([]); 
             for g in games_with_deck.iter() {
                 // Iterate over the hash map adding a match against each deck
                 *played_against
@@ -108,12 +107,6 @@ impl Player {
                     .entry(g.opp_deck.clone())
                     .or_insert(0) += 1;
                 } 
-                // else {
-                //     let _ = *order_vs
-                //     .entry(g.opp_deck.clone())
-                //     .or_insert(0);
-                    
-                // }
 
                 if g.win {
                     *wins
@@ -128,7 +121,7 @@ impl Player {
                 }
 
             }
-            
+            println!("Average mull for {} with {} is {}", self.name, deck, avr_mull); 
             println!("Decks Played against: {:?}",played_against);
             println!("Most order: {:?}",order_vs);
             println!("wins: {:?}",wins);
@@ -158,20 +151,12 @@ mod tests {
 
     # [test]
     fn test_filled_player_creation() {
-        let d1: Deck = Deck{
-            name: "Cycle Storm".to_string(),
-        };
-
-        let d2: Deck = Deck{
-            name: "Mono red madness".to_string(),
-        };
-
         let game1: Game = Game { 
-            format: Format::Pauper,
-            p_deck: d1.clone(), 
+            format: "Pauper".to_string(),
+            p_deck: "Cycle Storm".to_string(), 
             p_mull: 5, 
             p_order: Order::Draw,
-            opp_deck: d2.clone(), 
+            opp_deck: "Mono red madness".to_string(), 
             win: false,
 
         };
@@ -196,20 +181,12 @@ mod tests {
             vec![],
         );
 
-        let d3: Deck = Deck{
-            name: "Izzet Prowess".to_string(),
-        };
-
-        let d4: Deck = Deck{
-            name: "UW Belcher".to_string(),
-        };
-
         let game2: Game = Game { 
-            format: Format::Modern,
-            p_deck: d3.clone(), 
-            p_mull: 5, 
+            format: "Modern".to_string(),
+            p_deck: "Izzet Prowess".to_string(),
+            p_mull: 5,
             p_order: Order::Draw,
-            opp_deck: d4.clone(), 
+            opp_deck: "UW Belcher".to_string(),
             win: true
         };
 
@@ -217,8 +194,8 @@ mod tests {
 
         assert!(p.decks.len() == 1);
         assert!(p.game_history.len() == 1);
-        assert!(p.win_per_deck.get(&d3).unwrap() == &1);
-        assert!(p.win_rate.get(&d3).unwrap() == &1.0);
+        assert!(p.win_per_deck.get(&"Izzet Prowess".to_string()).unwrap() == &1);
+        assert!(p.win_rate.get(&"Izzet Prowess".to_string()).unwrap() == &1.0);
 
     }
 

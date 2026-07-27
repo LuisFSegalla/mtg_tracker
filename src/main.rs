@@ -1,30 +1,13 @@
 mod player;
-mod deck;
 mod game;
 
-use deck::{Deck};
 use player::Player;
 use std::{println, vec};
 
-use crate::game::{Game, Order, Format};
+use crate::game::{Game, Order};
 
-fn main() {
 
-    let d1: Deck = Deck{
-        name: "Cycle Storm".to_string(),
-    };
-
-    let d2: Deck = Deck{
-        name: "Mono red madness".to_string(),
-    };
-
-    let _d3: Deck = Deck{
-        name: "Izzet Prowess".to_string(),
-    };
-
-    let d4: Deck = Deck{
-        name: "Dimir terror".to_string(),
-    };
+fn main() -> Result<(), Box<dyn std::error::Error>>{
 
     let mut p1: Player = Player::new(
          "Luis".to_string(), 
@@ -33,52 +16,48 @@ fn main() {
 
     println!("{p1}");
 
-    p1.decks.sort_by_key(|d| d.name.clone());
-
-    println!("{p1}");
-
     let game1: Game = Game { 
-        format: Format::Pauper,
-        p_deck: d1.clone(), 
+        format: "Pauper".to_string(),
+        p_deck: "Cycle Storm".to_string(), 
         p_mull: 5, 
         p_order: Order::Draw,
-        opp_deck: d4.clone(), 
+        opp_deck: "Dimir terror".to_string(), 
         win: false 
     };
 
     let game2: Game = Game { 
-        format: Format::Pauper,
-        p_deck: d1.clone(), 
+        format: "Pauper".to_string(),
+        p_deck: "Cycle Storm".to_string(), 
         p_mull: 5, 
         p_order: Order::Draw,
-        opp_deck: d4.clone(), 
+        opp_deck: "Dimir terror".to_string(), 
         win: false 
     };
 
     let game3: Game = Game { 
-        format: Format::Pauper,
-        p_deck: d1.clone(), 
+        format: "Pauper".to_string(),
+        p_deck: "Cycle Storm".to_string(), 
         p_mull: 5, 
         p_order: Order::Draw,
-        opp_deck: d4.clone(), 
+        opp_deck: "Dimir terror".to_string(),
         win: true 
     };
 
     let game4: Game = Game { 
-        format: Format::Pauper,
-        p_deck: d1.clone(), 
+        format: "Pauper".to_string(),
+        p_deck: "Cycle Storm".to_string(), 
         p_mull: 5, 
         p_order: Order::Draw,
-        opp_deck: d2.clone(), 
+        opp_deck: "Mono red madness".to_string(), 
         win: false
     };
 
     let game5: Game = Game { 
-        format: Format::Pauper,
-        p_deck: d2.clone(), 
+        format: "Pauper".to_string(),
+        p_deck: "Mono red madness".to_string(), 
         p_mull: 5, 
         p_order: Order::Draw,
-        opp_deck: d4.clone(), 
+        opp_deck: "Dimir terror".to_string(), 
         win: true 
     };
 
@@ -90,6 +69,6 @@ fn main() {
  
     println!("{:?}",p1.win_rate);
 
-    p1.get_deck_stats(d1).unwrap();
-
+    p1.get_deck_stats("Cycle Storm".to_string()).unwrap();
+    Ok(())
 }
