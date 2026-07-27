@@ -1,8 +1,7 @@
-use crate::deck::Deck;
-use crate::game::{self, Game, Order};
+use crate::deck::{Deck, Format};
+use crate::game::{Game, Order};
 
-use core::panic;
-use std::{fmt, println, write};
+use std::{fmt, println, vec, write};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -31,12 +30,12 @@ impl fmt::Display for Player {
 
 
 impl Player {
-    pub fn new(name: String, decks: Vec<Deck>, games: Vec<Game>, win_rate: HashMap<Deck, f64>) -> Self{
+    pub fn new(name: String, decks: Vec<Deck>) -> Self{
         Player {
                 name: name,
                 decks: decks,
-                game_history: games,
-                win_rate: win_rate,
+                game_history: vec![],
+                win_rate: HashMap::from([]),
                 win_per_deck: HashMap::from([]),
                 games_per_deck: HashMap::from([]),
             }
@@ -46,8 +45,14 @@ impl Player {
         if !self.decks.contains(&game.p_deck) {
             println!("Adding {} to the decks list.", game.p_deck.name);
             self.decks.push(game.p_deck.clone());
-            self.games_per_deck.insert(game.p_deck.clone(), 1);
-            *self.win_per_deck.entry(game.p_deck.clone()).or_insert(0) = 0;
+            self.games_per_deck.insert(
+                game.p_deck.clone(),
+                1
+            );
+            self.win_per_deck.insert(
+            game.p_deck.clone(),
+            0
+            );
         }
         else {
             *self.games_per_deck.entry(game.p_deck.clone()).or_insert(0) += 1;
@@ -65,17 +70,6 @@ impl Player {
         *self.win_rate.entry(deck.clone()).or_insert(0.0) = (wins / games) as f64;
     }
 
-
-    pub fn calculate_all_win_rate(&mut self)  ->HashMap<Deck,f64> {
-        let mut win_rates: HashMap<Deck, f64> = HashMap::from([]);
-        for d in self.decks.iter_mut() {
-            let games = *self.games_per_deck.get(d).unwrap() as f64;
-            let wins = *self.win_per_deck.get(d).unwrap() as f64;
-            let win_rate = (wins / games) as f64;
-            win_rates.insert(d.clone(), win_rate);
-        }
-        return win_rates;
-    }
 
     pub fn get_deck_stats(&mut self, deck: Deck) -> Result<(), String>{
         if !self.decks.contains(&deck) {
@@ -143,5 +137,90 @@ impl Player {
         }
     }
 
+}
+
+
+# [cfg(test)]
+mod tests {
+    use std::vec;
+
+    use super::*;
+
+    # [test]
+    fn test_empty_player_creation() {
+        let p: Player = Player::new(
+            "Player1".to_string(),
+            vec![],
+        );
+        assert!(p.decks.len() == 0);
+        assert!(p.game_history.len() == 0);
+    }
+
+    # [test]
+    fn test_filled_player_creation() {
+        let d1: Deck = Deck{
+            name: "Cycle Storm".to_string(),
+            format: Format::Pauper,
+        };
+
+        let d2: Deck = Deck{
+            name: "Mono red madness".to_string(),
+            format: Format::Pauper,
+        };
+
+        let game1: Game = Game { 
+            p_deck: d1.clone(), 
+            p_mull: 5, 
+            p_order: Order::Draw,
+            opp_deck: d2.clone(), 
+            win: false 
+        };
+
+        let mut p: Player = Player::new(
+            "Player1".to_string(),
+            vec![],
+        );
+
+        p.add_game(&game1);
+
+        assert!(p.decks.len() == 1);
+        assert!(p.game_history.len() == 1);
+
+    }
+
+
+    # [test]
+    fn test_add_game() {
+        let mut p: Player = Player::new(
+            "Player1".to_string(),
+            vec![],
+        );
+
+        let d3: Deck = Deck{
+            name: "Izzet Prowess".to_string(),
+            format: Format::Modern,
+        };
+
+        let d4: Deck = Deck{
+            name: "UW Belcher".to_string(),
+            format: Format::Modern,
+        };
+
+        let game2: Game = Game { 
+            p_deck: d3.clone(), 
+            p_mull: 5, 
+            p_order: Order::Draw,
+            opp_deck: d4.clone(), 
+            win: true
+        };
+
+        p.add_game(&game2);
+
+        assert!(p.decks.len() == 1);
+        assert!(p.game_history.len() == 1);
+        assert!(p.win_per_deck.get(&d3).unwrap() == &1);
+        assert!(p.win_rate.get(&d3).unwrap() == &1.0);
+
+    }
 
 }

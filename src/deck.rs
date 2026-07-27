@@ -4,7 +4,6 @@ use std::{fmt, write};
 pub enum Format {
     Pauper,
     Modern,
-    CEDH,
 } 
 
 # [derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -16,10 +15,8 @@ pub struct Deck {
 impl fmt::Display for Format {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Format::CEDH => write!(f, "cEDH"),
             Format::Modern => write!(f, "Modern"),
             Format::Pauper => write!(f, "Pauper"),
-            _ => write!(f, "Invalid format"),
         }
     }
 }

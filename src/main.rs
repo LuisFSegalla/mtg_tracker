@@ -20,7 +20,7 @@ fn main() {
         format: Format::Pauper,
     };
 
-    let d3: Deck = Deck{
+    let _d3: Deck = Deck{
         name: "Izzet Prowess".to_string(),
         format: Format::Modern,
     };
@@ -33,8 +33,6 @@ fn main() {
     let mut p1: Player = Player::new(
          "Luis".to_string(), 
          vec![], 
-         vec![], 
-         HashMap::from([])
     );
 
     println!("{p1}");
