@@ -1,10 +1,12 @@
-# [derive(Debug, Clone, PartialEq, Eq)]
+use serde::{Serialize, Deserialize};
+
+# [derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Order {
     Play,
     Draw
 }
 
-# [derive(Debug, Clone)]
+# [derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Game {
     pub format: String,
     pub p_deck: String,

@@ -3,8 +3,9 @@ use crate::game::{Game, Order};
 use std::{fmt, println, vec, write};
 use std::collections::HashMap;
 
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Player {
     pub name: String,
     pub decks: Vec<String>,
@@ -22,7 +23,7 @@ impl fmt::Display for Player {
             write!(f, "Deck: {}\n", d)?;
             write!(f, "Wins: {}\n", self.win_per_deck.get(d).unwrap_or(&0))?;
             write!(f, "Total games: {}\n", self.games_per_deck.get(d).unwrap_or(&0))?;
-
+            write!(f, "Average win rate: {}\n", self.win_rate.get(d).unwrap_or(&0.0))?;
         }
         Ok(())
     }
