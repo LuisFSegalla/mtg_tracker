@@ -123,6 +123,7 @@ impl Player {
 
             }
             println!("Average mull for {} with {} is {}", self.name, deck, avr_mull); 
+            println!("Number of games played with the deck: {}",games_with_deck.len());
             println!("Decks Played against: {:?}",played_against);
             println!("Most order: {:?}",order_vs);
             println!("wins: {:?}",wins);
