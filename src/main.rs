@@ -22,6 +22,21 @@ fn player_exists(conn: &Connection, key: &String) -> Result<bool>{
 
 }
 
+fn create_table() -> Result<Connection, Box<dyn Error>> {
+    let conn = Connection::open("/workspaces/mtg_tracker/my_db.db3")?;
+    println!("{}", conn.is_autocommit());
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS player (
+            id   INTEGER PRIMARY KEY,
+            name TEXT NON NULL UNIQUE,
+            data BLOB
+        )",
+        (), // empty list of parameters.
+    )?;
+    return Ok(conn);
+
+}
+
 fn retrieve_player(conn: &Connection, key: &String) -> Result<Player, Box<dyn Error>>{
     let data: Vec<u8> = conn.query_row(
         "SELECT data FROM player WHERE name = ?1", 
@@ -101,16 +116,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>>{
     // p1.add_game(&game4);
     // p1.add_game(&game5);
 
-    let conn = Connection::open("/workspaces/mtg_tracker/my_db.db3")?;
-    println!("{}", conn.is_autocommit());
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS player (
-            id   INTEGER PRIMARY KEY,
-            name TEXT NON NULL UNIQUE,
-            data BLOB
-        )",
-        (), // empty list of parameters.
-    )?;
+    let conn = create_table()?;
 
 
     let json_data: Vec<u8> = serde_json::to_vec(&p1)?;
