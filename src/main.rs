@@ -111,11 +111,6 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                         Some(CurrentlyEditingGame::OpponentDeck) => {
                             app.opp_deck.push(value);
                         }
-                        Some(CurrentlyEditingGame::Win) => match value {
-                            'w' => app.win = true,
-                            'l' => app.win = false,
-                            _ => {}
-                        },
                         _ => {}
                     }
                     KeyCode::Backspace => match app.current_editing_game {
@@ -190,6 +185,25 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                         Some(CurrentlyEditingGame::PlayerOrder) => match app.p_order {
                             Order::Draw => app.p_order = Order::Play,
                             Order::Play => app.p_order = Order::Draw,
+                        }
+                        Some(CurrentlyEditingGame::Win) => match app.win {
+                            true => app.win = false,
+                            false => app.win = true,
+                        }
+                        _ => {}
+                    }
+                    KeyCode::Down => match app.current_editing_game {
+                        Some(CurrentlyEditingGame::Format) => match app.format {
+                            Format::Modern => app.format = Format::Pauper,
+                            Format::Pauper => app.format = Format::Modern,
+                        }
+                        Some(CurrentlyEditingGame::PlayerOrder) => match app.p_order {
+                            Order::Draw => app.p_order = Order::Play,
+                            Order::Play => app.p_order = Order::Draw,
+                        }
+                        Some(CurrentlyEditingGame::Win) => match app.win {
+                            true => app.win = false,
+                            false => app.win = true,
                         }
                         _ => {}
                     }
