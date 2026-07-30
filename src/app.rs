@@ -38,6 +38,7 @@ pub enum CurrentlyEditingPlayer {
 
 pub struct App {
     pub player_name: String,
+    pub vec_players: Vec<String>,
     pub decks: Vec<String>,
     pub current_screen: CurrentScreen,
     pub current_editing_game: Option<CurrentlyEditingGame>,
@@ -54,6 +55,7 @@ impl App {
     pub fn new() -> App {
         App {
             player_name: "".to_string(),
+            vec_players: vec![],
             decks: vec![],
             current_screen: CurrentScreen::Main,
             current_editing_game: None,
@@ -65,6 +67,10 @@ impl App {
             opp_deck: "".to_string(),
             win: true
         }
+    }
+    pub fn add_player(&mut self) {
+        self.vec_players.push(self.player_name.clone());
+        self.player_name.clear();
     }
 
 }

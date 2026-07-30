@@ -74,10 +74,12 @@ where
                 CurrentScreen::Main =>
                     match key.code {
                     KeyCode::Char('p') => {
-                        app.current_screen = CurrentScreen::Player;
+                        app.current_screen = CurrentScreen::AddPlayer;
+                        app.current_editing_player = Some(CurrentlyEditingPlayer::PlayerName);
                     }
                     KeyCode::Char('e') => {
-                        app.current_screen = CurrentScreen::Editing;
+                        app.current_screen = CurrentScreen::AddGame;
+                        app.current_editing_game = Some(CurrentlyEditingGame::Format);
                     }
                     KeyCode::Char('d') => {
                         app.current_screen = CurrentScreen::Display;
@@ -113,6 +115,66 @@ where
 
                 CurrentScreen::AddGame if key.kind == KeyEventKind::Press =>
                     match key.code {
+                        // Check every character and places it in the current selected space
+                        // ToDo:
+                        // * Add binary choices for win
+                        KeyCode::Char(value) => {
+                            match app.current_editing_game {
+                                Some(CurrentlyEditingGame::Format) => {
+                                    app.format.push(value);
+                                }
+                                Some(CurrentlyEditingGame::PlayerDeck) => {
+                                    app.p_deck.push(value);
+                                }
+                                Some(CurrentlyEditingGame::PlayerMull) => {
+                                    let mull = value.to_digit(10).unwrap() as u8;
+                                    if mull > 7 {
+                                        app.p_mull = 7;
+                                    } else {
+                                        app.p_mull = mull;
+                                    }
+                                }
+                                Some(CurrentlyEditingGame::PlayerOrder) => {
+                                    app.p_order.push(value);
+                                }
+                                Some(CurrentlyEditingGame::OpponentDeck) => {
+                                    app.opp_deck.push(value);
+                                }
+                                Some(CurrentlyEditingGame::Win) => {
+                                    match value {
+                                        'w' => app.win = true,
+                                        'l' => app.win = false,
+                                        _ => {}
+                                    }
+                                    
+                                }
+                                _ => {}
+                            }
+                        }
+                        KeyCode::Backspace => {
+                            match app.current_editing_game {
+                                Some(CurrentlyEditingGame::Format) => {
+                                    app.format.pop();
+                                }
+                                Some(CurrentlyEditingGame::PlayerDeck) => {
+                                    app.p_deck.pop();
+                                }
+                                Some(CurrentlyEditingGame::PlayerMull) => {
+                                    app.p_mull = 0;
+                                }
+                                Some(CurrentlyEditingGame::PlayerOrder) => {
+                                    app.p_order.pop();
+                                }
+                                Some(CurrentlyEditingGame::OpponentDeck) => {
+                                    app.opp_deck.pop();
+                                }
+                                Some(CurrentlyEditingGame::Win) => {
+                                    app.win = false;
+                                    
+                                }
+                                _ => {}
+                            }
+                        }
                         KeyCode::Enter => {
                             app.current_screen = CurrentScreen::Main;
                             app.current_editing_player = None;
@@ -125,11 +187,29 @@ where
                             app.current_editing_game = None;
 
                         }
-                        KeyCode::Char('1') => {
-                            app.current_editing_game = Some(CurrentlyEditingGame::Format);
-
+                        KeyCode::Tab => {
+                            match app.current_editing_game {
+                                Some(CurrentlyEditingGame::Format) => {
+                                    app.current_editing_game = Some(CurrentlyEditingGame::PlayerDeck)
+                                }
+                                Some(CurrentlyEditingGame::PlayerDeck) => {
+                                    app.current_editing_game = Some(CurrentlyEditingGame::PlayerMull)
+                                }
+                                Some(CurrentlyEditingGame::PlayerMull) => {
+                                    app.current_editing_game = Some(CurrentlyEditingGame::PlayerOrder)
+                                }
+                                Some(CurrentlyEditingGame::PlayerOrder) => {
+                                    app.current_editing_game = Some(CurrentlyEditingGame::OpponentDeck)
+                                }
+                                Some(CurrentlyEditingGame::OpponentDeck) => {
+                                    app.current_editing_game = Some(CurrentlyEditingGame::Win)
+                                }
+                                Some(CurrentlyEditingGame::Win) => {
+                                    app.current_editing_game = Some(CurrentlyEditingGame::Format)
+                                }
+                                _ => {}
+                            }
                         }
-
                         _ => {}
                         
                     }
@@ -143,6 +223,7 @@ where
                             app.current_screen = CurrentScreen::Main;
                             app.current_editing_player = None;
                             app.current_editing_game = None;
+                            app.add_player();
                         }
                         KeyCode::Backspace => {
                             app.player_name.pop();
