@@ -1,5 +1,5 @@
 use crate::game::{Game, Order, Format};
-use std::io;
+use std::{io, string};
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
@@ -22,6 +22,7 @@ pub enum CurrentScreen {
     AddGame,
     Display,
     ErrorPLayerNotFound,
+    DeckSelector,
 }
 
 pub enum CurrentlyEditingGame {
@@ -41,6 +42,7 @@ pub struct App {
     pub player_name: String,
     pub vec_players: Vec<String>,
     pub decks: Vec<String>,
+    pub deck_index: usize,
     pub current_screen: CurrentScreen,
     pub current_editing_game: Option<CurrentlyEditingGame>,
     pub current_editing_player: Option<CurrentlyEditingPlayer>,
@@ -58,6 +60,7 @@ impl App {
             player_name: "".to_string(),
             vec_players: vec![],
             decks: vec![],
+            deck_index: 0,
             current_screen: CurrentScreen::Main,
             current_editing_game: None,
             current_editing_player: None,

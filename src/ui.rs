@@ -22,6 +22,15 @@ pub fn ui(frame: &mut Frame, app: &App) {
         ])
         .split(frame.area());
 
+    // Layout for showing players and decks
+    let inner_layout = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(vec![
+            Constraint::Percentage(25),
+            Constraint::Percentage(75),
+        ])
+        .split(chunks[1]);
+
     let title_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default());
@@ -35,18 +44,28 @@ pub fn ui(frame: &mut Frame, app: &App) {
     frame.render_widget(title, chunks[0]);
 
     // ToDo: Add list of Decks per player making it possible to select decks with arrow key
-    let mut list_items = Vec::<ListItem>::new();
+    let mut player_list = Vec::<ListItem>::new();
+    let mut decks_list = Vec::<ListItem>::new();
 
+    //Iterate over players list
     for p in app.vec_players.iter() {
-        list_items.push(ListItem::new(Line::from(Span::styled(
+        player_list.push(ListItem::new(Line::from(Span::styled(
             format!("{: <25}", p),
             Style::default().fg(Color::Yellow),
         ))));
     }
+    for d in app.decks.iter() {
+        decks_list.push(ListItem::new(Line::from(Span::styled(
+            format!("{: <25}", d),
+            Style::default().fg(Color::Red),
+        ))));
+    }
 
-    let list = List::new(list_items);
+    let p_list = List::new(player_list);
+    let d_list = List::new(decks_list);
 
-    frame.render_widget(list, chunks[1]);
+    frame.render_widget(p_list, inner_layout[0]);
+    frame.render_widget(d_list, inner_layout[1]);
 
     render_footnotes(app, frame, &chunks);
 
@@ -152,6 +171,10 @@ pub fn ui(frame: &mut Frame, app: &App) {
         render_display(&app, frame);
     }
 
+    if let CurrentScreen::DeckSelector = app.current_screen {
+        render_deck_selector(&app, frame);
+    }
+
     // Basic exit screen - Copied from the example in ratatui JSON editor
     if let CurrentScreen::Exiting = app.current_screen {
         frame.render_widget(Clear, frame.area()); //this clears the entire screen and anything already drawn
@@ -252,6 +275,9 @@ fn render_display(app: &App, frame: &mut Frame) {
     frame.render_widget(result_text, popup_chunks[5]);
 }
 
+
+// Renders the footnotes on the screen
+// Showing which commands are available in each screen
 fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
     let current_navigation_text = vec![
         // The first half of the text
@@ -259,20 +285,20 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
             CurrentScreen::Main => Span::styled("Normal Mode", Style::default().fg(Color::Green)),
             CurrentScreen::Player => {
                 Span::styled("Player select Mode", Style::default().fg(Color::Red))
-            }
+            },
             CurrentScreen::Stats => {
                 Span::styled("Deck stats Mode", Style::default().fg(Color::Blue))
-            }
+            },
             CurrentScreen::Editing => {
                 Span::styled("Editing Game Mode", Style::default().fg(Color::White))
-            }
+            },
             CurrentScreen::Exiting => Span::styled("Exiting", Style::default().fg(Color::LightRed)),
             CurrentScreen::AddGame => {
                 Span::styled("Adding a new game", Style::default().fg(Color::Green))
-            }
+            },
             CurrentScreen::AddPlayer => {
                 Span::styled("Adding a new player", Style::default().fg(Color::Blue))
-            }
+            },
             CurrentScreen::Display => Span::styled(
                 "Dispaly Game/Player information",
                 Style::default().fg(Color::Blue),
@@ -281,6 +307,10 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
                 "Error screen",
                 Style::default().fg(Color::Blue),
             ),
+            CurrentScreen::DeckSelector => Span::styled(
+                "Deck selector screen",
+                Style::default().fg(Color::Blue),
+            )
         }
         .to_owned(),
         // A white divider bar to separate the two sections
@@ -338,7 +368,7 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
             ),
             CurrentScreen::Stats => {
                 Span::styled("(ESC) to cancel", Style::default().fg(Color::Red))
-            }
+            },
             CurrentScreen::Editing => Span::styled(
                 "(ESC) to cancel/ (e) to add a game/ (s) to get status",
                 Style::default().fg(Color::Red),
@@ -363,6 +393,10 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
                 "(ESC) / (q) back to main screen",
                 Style::default().fg(Color::Red),
             ),
+            CurrentScreen::DeckSelector => Span::styled(
+                "(ESC) / (q) back deck editing screen",
+                Style::default().fg(Color::Red),
+            ),
         }
     };
 
@@ -377,6 +411,54 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
     frame.render_widget(mode_footer, footer_chunks[0]);
     frame.render_widget(key_notes_footer, footer_chunks[1]);
 }
+
+
+// Render the deck selector screen to facilitate choosing among previously selected decks
+fn render_deck_selector(app: &App, frame: &mut Frame) {
+    let popup_block = Block::default()
+        .title("Select a deck")
+        .borders(Borders::NONE)
+        .style(Style::default().bg(Color::LightYellow));
+
+    let small_area = centered_rect(25, 25, frame.area());
+    
+    let active_style = Style::default().bg(Color::LightYellow).fg(Color::Black);
+
+
+    let deck_selector = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(1)
+        .constraints([
+            Constraint::Percentage(100),
+        ])
+        .split(small_area);
+    frame.render_widget(popup_block, small_area);
+
+
+    let mut decks_list = Vec::<ListItem>::new();
+
+    //Iterate over players list
+    for d in app.decks.iter() {
+        if d.eq(&app.p_deck) {
+            decks_list.push(ListItem::new(Line::from(Span::styled(
+                format!("{: <25}", d),
+                active_style,
+            ))));
+        }
+        else {
+            decks_list.push(ListItem::new(Line::from(Span::styled(
+                format!("{: <25}", d),
+                Style::default().fg(Color::Yellow),
+            ))));            
+        }
+    }
+
+    let d_list = List::new(decks_list);
+    frame.render_widget(d_list, deck_selector[0]);
+
+
+}
+
 
 /// Copied from the example JSON editor example from ratatui docs
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {

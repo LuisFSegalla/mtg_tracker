@@ -143,6 +143,9 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                             opp_deck: app.p_deck.clone(), 
                             win: app.win.clone()
                         };
+                        if !app.decks.contains(&app.p_deck) {
+                            app.decks.push(app.p_deck.to_lowercase().clone());
+                        }
                         // Player exists in our app and database
                         if player_exists(db, &app.player_name.to_lowercase())?  {
                             update_player(&g, &app.player_name.to_lowercase(), db)?;
@@ -206,6 +209,9 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                             false => app.win = true,
                         }
                         _ => {}
+                    }
+                    KeyCode::Right => {
+                        app.current_screen = CurrentScreen::DeckSelector;
                     }
                     _ => {}
                 },
@@ -273,6 +279,25 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                         app.current_screen = CurrentScreen::Main;
                         app.current_editing_player = None;
                         app.current_editing_game = None;
+                    }
+                    _ => {}
+                }
+
+                CurrentScreen::DeckSelector => match key.code {
+                    KeyCode::Tab => {
+                        match app.decks.get(app.deck_index) {
+                            Some(d) => app.p_deck = d.clone(),
+                            None => {}
+                        }
+                        if app.deck_index < (app.decks.len() - 1) {
+                            app.deck_index += 1;
+                        }
+                        else {
+                            app.deck_index = 0;
+                        }
+                    }
+                    KeyCode::Esc | KeyCode::Char('q') => {
+                            app.current_screen = CurrentScreen::AddGame;
                     }
                     _ => {}
                 }
