@@ -2,9 +2,10 @@ use crate::game::Game;
 use crate::player::Player;
 use rusqlite::{Connection, Result, params};
 use std::{error::Error, println};
+use log::{info, warn, error};
 
 pub fn player_exists(conn: &Connection, key: &String) -> Result<bool> {
-    println!("Checking if {} is in the Database.", key);
+    info!("Checking if {} is in the Database.", key);
     conn.query_row(
         "SELECT EXISTS(SELECT name FROM player WHERE name = ?1)",
         params![key],
@@ -17,7 +18,6 @@ pub fn player_exists(conn: &Connection, key: &String) -> Result<bool> {
 
 pub fn create_table() -> Result<Connection, Box<dyn Error>> {
     let conn = Connection::open("/workspaces/mtg_tracker/my_db.db3")?;
-    println!("{}", conn.is_autocommit());
     conn.execute(
         "CREATE TABLE IF NOT EXISTS player (
             id   INTEGER PRIMARY KEY,
@@ -39,6 +39,19 @@ pub fn retrieve_player(conn: &Connection, key: &String) -> Result<Player, Box<dy
     Ok(p)
 }
 
+pub fn add_player(conn: &Connection, p: &Player) -> Result<(), Box<dyn Error>>{
+    let json_data: Vec<u8> = serde_json::to_vec(&p)?;
+
+    if !player_exists(&conn, &p.name)? {
+        info!("Adding new player {}",p.name);
+        conn.execute(
+            "INSERT INTO player (name, data) VALUES (?1,?2)",
+            (&p.name, &json_data),
+        )?;
+    }
+    Ok(())
+}
+
 pub fn update_player(
     game: &Game,
     player: &String,
@@ -53,4 +66,17 @@ pub fn update_player(
         (&player, &json_data),
     )?;
     Ok(())
+}
+
+pub fn get_player_names(conn: &Connection) -> Result<Vec<String>, Box<dyn Error>> {
+    info!("Returning all players in the database.");
+    let mut stmt = conn.prepare("SELECT name FROM player")?;
+    let keys: Vec<String> = stmt
+        .query_map(
+            [],
+            |row| row.get::<_, String>(0)
+        )?
+        .collect::<Result<Vec<_>, _>>()?;
+    return Ok(keys);
+
 }

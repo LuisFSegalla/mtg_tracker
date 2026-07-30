@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::{fmt, println, vec, write};
 
 use serde::{Deserialize, Serialize};
+use log::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Player {
@@ -50,7 +51,7 @@ impl Player {
 
     pub fn add_game(&mut self, game: &Game) {
         if !self.decks.contains(&game.p_deck) {
-            println!("Adding {} to the decks list.", game.p_deck);
+            info!("Adding {} to the decks list.", game.p_deck);
             self.decks.push(game.p_deck.clone());
             self.games_per_deck.insert(game.p_deck.clone(), 1);
             self.win_per_deck.insert(game.p_deck.clone(), 0);

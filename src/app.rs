@@ -1,4 +1,4 @@
-use crate::game::{Game, Order};
+use crate::game::{Game, Order, Format};
 use std::io;
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
@@ -21,6 +21,7 @@ pub enum CurrentScreen {
     AddPlayer,
     AddGame,
     Display,
+    ErrorPLayerNotFound,
 }
 
 pub enum CurrentlyEditingGame {
@@ -43,10 +44,10 @@ pub struct App {
     pub current_screen: CurrentScreen,
     pub current_editing_game: Option<CurrentlyEditingGame>,
     pub current_editing_player: Option<CurrentlyEditingPlayer>,
-    pub format: String,
+    pub format: Format,
     pub p_deck: String,
     pub p_mull: u8,
-    pub p_order: String,
+    pub p_order: Order,
     pub opp_deck: String,
     pub win: bool,
 }
@@ -60,16 +61,18 @@ impl App {
             current_screen: CurrentScreen::Main,
             current_editing_game: None,
             current_editing_player: None,
-            format: "".to_string(),
+            format: Format::Pauper,
             p_deck: "".to_string(),
             p_mull: 0,
-            p_order: "".to_string(),
+            p_order: Order::Draw,
             opp_deck: "".to_string(),
             win: true,
         }
     }
-    pub fn add_player(&mut self) {
-        self.vec_players.push(self.player_name.clone());
-        self.player_name.clear();
+    pub fn add_player(&mut self, players: &Vec<String>) {
+        self.vec_players.clear();
+        for p in players.iter() {
+            self.vec_players.push(p.clone());
+        }
     }
 }

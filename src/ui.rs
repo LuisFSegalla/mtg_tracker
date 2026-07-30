@@ -7,9 +7,9 @@ use ratatui::{
 };
 
 use crate::{
-    app::{App, CurrentScreen, CurrentlyEditingGame},
-    game::Order,
+    app::{App, CurrentScreen, CurrentlyEditingGame}, game::{Format, Order},
 };
+
 
 pub fn ui(frame: &mut Frame, app: &App) {
     //Define my main area to be rendered
@@ -97,11 +97,22 @@ pub fn ui(frame: &mut Frame, app: &App) {
             CurrentlyEditingGame::Win => result_block = result_block.style(active_style),
         }
 
-        let format_text = Paragraph::new(app.format.clone()).block(format_block);
+        let format_text = Paragraph::new(
+            match app.format {
+                Format::Modern => "Modern".to_string(),
+                Format::Pauper => "Pauper".to_string()
+            }
+        ).block(format_block);
         let p_deck_text = Paragraph::new(app.p_deck.clone()).block(p_deck_block);
         let p_mull_text = Paragraph::new(app.p_mull.clone().to_string()).block(p_mull_block);
         let opp_deck_text = Paragraph::new(app.opp_deck.clone()).block(opp_deck_block);
-        let p_order_text = Paragraph::new(app.p_order.clone()).block(p_order_block);
+        let p_order_text = Paragraph::new(
+            match app.p_order {
+                Order::Draw => "Draw".to_string(),
+                Order::Play => "Play".to_string()
+            }
+
+        ).block(p_order_block);
         let result_text = Paragraph::new(match app.win {
             true => "Win",
             false => "Lose",
@@ -158,6 +169,28 @@ pub fn ui(frame: &mut Frame, app: &App) {
         let area = centered_rect(60, 25, frame.area());
         frame.render_widget(exit_paragraph, area);
     }
+
+    if let CurrentScreen::ErrorPLayerNotFound = app.current_screen {
+        frame.render_widget(Clear, frame.area()); //this clears the entire screen and anything already drawn
+        let popup_block = Block::default()
+            .title("ERROR")
+            .borders(Borders::NONE)
+            .style(Style::default().bg(Color::Red));
+
+        let exit_text = Text::styled(
+            "Error while trying to add a game to a player not in the database", 
+            Style::default().fg(Color::Black)
+        );
+        // the `trim: false` will stop the text from being cut off when over the edge of the block
+        let exit_paragraph = Paragraph::new(exit_text)
+            .block(popup_block)
+            .wrap(Wrap { trim: false });
+
+        let area = centered_rect(60, 25, frame.area());
+        frame.render_widget(exit_paragraph, area);
+    }
+    
+
 }
 
 fn render_display(app: &App, frame: &mut Frame) {
@@ -185,20 +218,26 @@ fn render_display(app: &App, frame: &mut Frame) {
 
     let format_block = Block::default().title("Format").borders(Borders::ALL);
     let p_deck_block = Block::default().title("Player deck").borders(Borders::ALL);
-    let p_mull_block = Block::default()
-        .title("Player mulligan")
-        .borders(Borders::ALL);
+    let p_mull_block = Block::default().title("Player mulligan").borders(Borders::ALL);
     let p_order_block = Block::default().title("Player order").borders(Borders::ALL);
-    let opp_deck_block = Block::default()
-        .title("Opponent deck")
-        .borders(Borders::ALL);
+    let opp_deck_block = Block::default().title("Opponent deck").borders(Borders::ALL);
     let result_block = Block::default().title("Match Result").borders(Borders::ALL);
 
-    let format_text = Paragraph::new(app.format.clone()).block(format_block);
+    let format_text = Paragraph::new(
+        match app.format {
+            Format::Modern => "Modern".to_string(),
+            Format::Pauper => "Pauper".to_string()
+        }
+    ).block(format_block);        
+    let p_order_text = Paragraph::new(
+        match app.p_order {
+            Order::Draw => "Draw".to_string(),
+            Order::Play => "Play".to_string()
+        }
+    ).block(p_order_block);
     let p_deck_text = Paragraph::new(app.p_deck.clone()).block(p_deck_block);
     let p_mull_text = Paragraph::new(app.p_mull.clone().to_string()).block(p_mull_block);
     let opp_deck_text = Paragraph::new(app.opp_deck.clone()).block(opp_deck_block);
-    let p_order_text = Paragraph::new(app.p_order.clone()).block(p_order_block);
     let result_text = Paragraph::new(match app.win {
         true => "Win",
         false => "Lose",
@@ -236,6 +275,10 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
             }
             CurrentScreen::Display => Span::styled(
                 "Dispaly Game/Player information",
+                Style::default().fg(Color::Blue),
+            ),
+            CurrentScreen::ErrorPLayerNotFound => Span::styled(
+                "Error screen",
                 Style::default().fg(Color::Blue),
             ),
         }
@@ -314,6 +357,10 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
             ),
             CurrentScreen::Display => Span::styled(
                 "(ESC) to cancel/ (q) back to main screen",
+                Style::default().fg(Color::Red),
+            ),
+            CurrentScreen::ErrorPLayerNotFound => Span::styled(
+                "(ESC) / (q) back to main screen",
                 Style::default().fg(Color::Red),
             ),
         }
