@@ -45,69 +45,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .margin(2)
         .split(chunks[1]);
     
-    let player_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints(vec![
-            Constraint::Percentage(10),
-            Constraint::Percentage(90),
-        ])
-        .margin(2)
-        .split(inner_layout[0]);
-    
-    let player_title_block = Block::bordered().style(Style::default());
-    let player_title = Paragraph::new(
-        Text::styled(
-            "Player name",
-            Style::default().fg(Color::LightBlue))
-    )
-    .block(player_title_block);
-    frame.render_widget(player_title, player_layout[0]);
-
-
-    let deck_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints(vec![
-            Constraint::Percentage(10),
-            Constraint::Percentage(90),
-        ])
-        .margin(2)
-        .split(inner_layout[1]);
-
-    let decks_title_block = Block::bordered().style(Style::default());
-    let decks_title = Paragraph::new(
-        Text::styled(
-            "Player decks",
-            Style::default().fg(Color::LightBlue))
-    )
-    .block(decks_title_block);
-    frame.render_widget(decks_title, deck_layout[0]);
-    
-    // ToDo: Add list of Decks per player making it possible to select decks with arrow key
-    let mut player_list = Vec::<ListItem>::new();
-    let mut decks_list = Vec::<ListItem>::new();
-
-    //Iterate over players list
-    for p in app.vec_players.iter() {
-        player_list.push(ListItem::new(Line::from(Span::styled(
-            format!("{: <25}", p),
-            Style::default().fg(Color::Yellow),
-        ))));
-    }
-    for d in app.decks.iter() {
-        decks_list.push(ListItem::new(Line::from(Span::styled(
-            format!("{: <25}", d),
-            Style::default().fg(Color::Red),
-        ))));
-    }
-
-    let player_list_block = Block::bordered().style(Style::default().fg(Color::DarkGray));
-    let deck_list_block = Block::bordered().style(Style::default().fg(Color::DarkGray));
-
-    let p_list = List::new(player_list).block(player_list_block);
-    let d_list = List::new(decks_list).block(deck_list_block);
-
-    frame.render_widget(p_list, player_layout[1]);
-    frame.render_widget(d_list, deck_layout[1]);
+    render_player_layout(app, frame, &[inner_layout[0]]);
+    render_deck_layout(app, frame, &[inner_layout[1]]);
 
     render_footnotes(app, frame, &chunks);
 
@@ -537,4 +476,79 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
             Constraint::Percentage((100 - percent_x) / 2),
         ])
         .split(popup_layout[1])[1] // Return the middle chunk
+}
+
+
+fn render_player_layout(app: &App, frame: &mut Frame, area: &[Rect]) {
+    let player_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![
+            Constraint::Percentage(10),
+            Constraint::Percentage(90),
+        ])
+        .margin(2)
+        .split(area[0]);
+    
+    let player_title_block = Block::bordered().style(Style::default());
+    let player_title = Paragraph::new(
+        Text::styled(
+            "Player name",
+            Style::default().fg(Color::LightBlue))
+    )
+    .block(player_title_block);
+    frame.render_widget(player_title, player_layout[0]);
+
+    // ToDo: Add list of Decks per player making it possible to select decks with arrow key
+    let mut player_list = Vec::<ListItem>::new();
+
+    //Iterate over players list
+    for p in app.vec_players.iter() {
+        player_list.push(ListItem::new(Line::from(Span::styled(
+            format!("{: <25}", p),
+            Style::default().fg(Color::Yellow),
+        ))));
+    }
+
+    let player_list_block = Block::bordered().style(Style::default().fg(Color::DarkGray));
+
+    let p_list = List::new(player_list).block(player_list_block);
+
+    frame.render_widget(p_list, player_layout[1]);
+}
+
+fn render_deck_layout(app: &App,frame: &mut Frame, area: &[Rect]) {
+    let deck_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![
+            Constraint::Percentage(10),
+            Constraint::Percentage(90),
+        ])
+        .margin(2)
+        .split(area[0]);
+
+    let decks_title_block = Block::bordered().style(Style::default());
+    let decks_title = Paragraph::new(
+        Text::styled(
+            "Player decks",
+            Style::default().fg(Color::LightBlue))
+    )
+    .block(decks_title_block);
+    frame.render_widget(decks_title, deck_layout[0]);
+    
+    // ToDo: Add list of Decks per player making it possible to select decks with arrow key
+    let mut decks_list = Vec::<ListItem>::new();
+
+    for d in app.decks.iter() {
+        decks_list.push(ListItem::new(Line::from(Span::styled(
+            format!("{: <25}", d),
+            Style::default().fg(Color::Red),
+        ))));
+    }
+
+    let deck_list_block = Block::bordered().style(Style::default().fg(Color::DarkGray));
+
+    let d_list = List::new(decks_list).block(deck_list_block);
+
+    frame.render_widget(d_list, deck_layout[1]);
+
 }
