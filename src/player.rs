@@ -1,7 +1,7 @@
 use crate::game::{Game, Order};
 
 use std::collections::HashMap;
-use std::{fmt, println, vec, write};
+use std::{fmt, vec, write};
 
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -14,6 +14,14 @@ pub struct Player {
     pub win_rate: HashMap<String, f64>,
     win_per_deck: HashMap<String, i32>,
     games_per_deck: HashMap<String, i32>,
+}
+
+pub struct Stats {
+    pub deck_played_against: HashMap<String, i32>,
+    pub play_draw_order: HashMap<String, i32>,
+    pub wins_against: HashMap<String, i32>,
+    pub win_rate: f64,
+    pub avr_mull: f64,
 }
 
 impl fmt::Display for Player {
@@ -71,11 +79,11 @@ impl Player {
         *self.win_rate.entry(deck.clone()).or_insert(0.0) = (wins / games) as f64;
     }
 
-    pub fn get_deck_stats(&mut self, deck: String) -> Result<(), String> {
+    pub fn get_deck_stats(&self, deck: String) -> Result<Stats, String>{
         if !self.decks.contains(&deck) {
             Err("Deck not registered for this {self.name}".to_string())
         } else {
-            self.game_history.sort_by_key(|g| g.p_deck == deck);
+            // self.game_history.sort_by_key(|g| g.p_deck == deck);
 
             // Sort the match history with a certain deck
             // and split it into a separate array to be worked on;
@@ -106,19 +114,16 @@ impl Player {
                     let _ = *wins.entry(g.opp_deck.clone()).or_insert(0);
                 }
             }
-            println!(
-                "Average mull for {} with {} is {}",
-                self.name, deck, avr_mull
-            );
-            println!(
-                "Number of games played with the deck: {}",
-                games_with_deck.len()
-            );
-            println!("Decks Played against: {:?}", played_against);
-            println!("Most order: {:?}", order_vs);
-            println!("wins: {:?}", wins);
+            let wr= self.win_rate.get(&deck).unwrap_or(&0.0);
+            let stats = Stats {
+                deck_played_against: played_against,
+                play_draw_order: order_vs,
+                wins_against: wins,
+                win_rate: wr.clone(),
+                avr_mull: avr_mull
+            };
 
-            Ok(())
+            Ok(stats)
         }
     }
 }
