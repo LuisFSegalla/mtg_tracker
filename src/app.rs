@@ -1,17 +1,5 @@
 use crate::game::{Format, Game, Order};
 use crate::player::Player;
-use std::{io, string};
-
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
-use ratatui::{
-    DefaultTerminal, Frame,
-    buffer::Buffer,
-    layout::Rect,
-    style::Stylize,
-    symbols::border,
-    text::{Line, Text},
-    widgets::{Block, Paragraph, Widget},
-};
 
 pub enum CurrentScreen {
     Main,
