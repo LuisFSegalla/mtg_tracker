@@ -1,4 +1,4 @@
-use crate::game::{Game, Order, Format};
+use crate::game::{Format, Game, Order};
 use crate::player::Player;
 use std::{io, string};
 

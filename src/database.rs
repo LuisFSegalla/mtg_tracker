@@ -1,8 +1,8 @@
 use crate::game::Game;
 use crate::player::Player;
+use log::{error, info, warn};
 use rusqlite::{Connection, Result, params};
 use std::{error::Error, println};
-use log::{info, warn, error};
 
 pub fn player_exists(conn: &Connection, key: &String) -> Result<bool> {
     info!("Checking if {} is in the Database.", key);
@@ -39,11 +39,11 @@ pub fn load_player(conn: &Connection, key: &String) -> Result<Player, Box<dyn Er
     Ok(p)
 }
 
-pub fn add_player(conn: &Connection, p: &Player) -> Result<(), Box<dyn Error>>{
+pub fn add_player(conn: &Connection, p: &Player) -> Result<(), Box<dyn Error>> {
     let json_data: Vec<u8> = serde_json::to_vec(&p)?;
 
     if !player_exists(&conn, &p.name)? {
-        info!("Adding new player {}",p.name);
+        info!("Adding new player {}", p.name);
         conn.execute(
             "INSERT INTO player (name, data) VALUES (?1,?2)",
             (&p.name, &json_data),
@@ -72,11 +72,7 @@ pub fn get_player_names(conn: &Connection) -> Result<Vec<String>, Box<dyn Error>
     info!("Returning all players in the database.");
     let mut stmt = conn.prepare("SELECT name FROM player")?;
     let keys: Vec<String> = stmt
-        .query_map(
-            [],
-            |row| row.get::<_, String>(0)
-        )?
+        .query_map([], |row| row.get::<_, String>(0))?
         .collect::<Result<Vec<_>, _>>()?;
     return Ok(keys);
-
 }

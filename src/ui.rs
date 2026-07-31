@@ -7,9 +7,10 @@ use ratatui::{
 };
 
 use crate::{
-    app::{App, CurrentScreen, CurrentlyEditingGame, CurrentlyEditingPlayer}, game::{Format, Order}, player,
+    app::{App, CurrentScreen, CurrentlyEditingGame, CurrentlyEditingPlayer},
+    game::{Format, Order},
+    player,
 };
-
 
 pub fn ui(frame: &mut Frame, app: &App) {
     //Define my main area to be rendered
@@ -44,7 +45,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
         ])
         .margin(2)
         .split(chunks[1]);
-    
+
     render_player_layout(app, frame, &[inner_layout[0]]);
     render_deck_layout(app, frame, &[inner_layout[1]]);
 
@@ -97,22 +98,19 @@ pub fn ui(frame: &mut Frame, app: &App) {
             CurrentlyEditingGame::Win => result_block = result_block.style(active_style),
         }
 
-        let format_text = Paragraph::new(
-            match app.format {
-                Format::Modern => "Modern".to_string(),
-                Format::Pauper => "Pauper".to_string()
-            }
-        ).block(format_block);
+        let format_text = Paragraph::new(match app.format {
+            Format::Modern => "Modern".to_string(),
+            Format::Pauper => "Pauper".to_string(),
+        })
+        .block(format_block);
         let p_deck_text = Paragraph::new(app.p_deck.clone()).block(p_deck_block);
         let p_mull_text = Paragraph::new(app.p_mull.clone().to_string()).block(p_mull_block);
         let opp_deck_text = Paragraph::new(app.opp_deck.clone()).block(opp_deck_block);
-        let p_order_text = Paragraph::new(
-            match app.p_order {
-                Order::Draw => "Draw".to_string(),
-                Order::Play => "Play".to_string()
-            }
-
-        ).block(p_order_block);
+        let p_order_text = Paragraph::new(match app.p_order {
+            Order::Draw => "Draw".to_string(),
+            Order::Play => "Play".to_string(),
+        })
+        .block(p_order_block);
         let result_text = Paragraph::new(match app.win {
             true => "Win",
             false => "Lose",
@@ -128,8 +126,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
     }
 
     // Edit player name in the app
-    if let Some(editing) = & app.current_editing_player  {
-        
+    if let Some(editing) = &app.current_editing_player {
         match editing {
             CurrentlyEditingPlayer::PlayerName => {
                 let popup_block = Block::default()
@@ -171,7 +168,6 @@ pub fn ui(frame: &mut Frame, app: &App) {
             }
             _ => {}
         }
-        
     }
 
     if let CurrentScreen::Display = app.current_screen {
@@ -179,7 +175,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
     }
 
     if let CurrentScreen::DeckSelector = app.current_screen {
-        render_deck_selector(&app, frame,&inner_layout);
+        render_deck_selector(&app, frame, &inner_layout);
     }
 
     // Basic exit screen - Copied from the example in ratatui JSON editor
@@ -208,8 +204,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
             .style(Style::default().bg(Color::Red));
 
         let exit_text = Text::styled(
-            "Error while trying to add a game to a player not in the database", 
-            Style::default().fg(Color::Black)
+            "Error while trying to add a game to a player not in the database",
+            Style::default().fg(Color::Black),
         );
         // the `trim: false` will stop the text from being cut off when over the edge of the block
         let exit_paragraph = Paragraph::new(exit_text)
@@ -219,8 +215,6 @@ pub fn ui(frame: &mut Frame, app: &App) {
         let area = centered_rect(60, 25, frame.area());
         frame.render_widget(exit_paragraph, area);
     }
-    
-
 }
 
 fn render_display(app: &App, frame: &mut Frame) {
@@ -248,23 +242,25 @@ fn render_display(app: &App, frame: &mut Frame) {
 
     let format_block = Block::default().title("Format").borders(Borders::ALL);
     let p_deck_block = Block::default().title("Player deck").borders(Borders::ALL);
-    let p_mull_block = Block::default().title("Player mulligan").borders(Borders::ALL);
+    let p_mull_block = Block::default()
+        .title("Player mulligan")
+        .borders(Borders::ALL);
     let p_order_block = Block::default().title("Player order").borders(Borders::ALL);
-    let opp_deck_block = Block::default().title("Opponent deck").borders(Borders::ALL);
+    let opp_deck_block = Block::default()
+        .title("Opponent deck")
+        .borders(Borders::ALL);
     let result_block = Block::default().title("Match Result").borders(Borders::ALL);
 
-    let format_text = Paragraph::new(
-        match app.format {
-            Format::Modern => "Modern".to_string(),
-            Format::Pauper => "Pauper".to_string()
-        }
-    ).block(format_block);        
-    let p_order_text = Paragraph::new(
-        match app.p_order {
-            Order::Draw => "Draw".to_string(),
-            Order::Play => "Play".to_string()
-        }
-    ).block(p_order_block);
+    let format_text = Paragraph::new(match app.format {
+        Format::Modern => "Modern".to_string(),
+        Format::Pauper => "Pauper".to_string(),
+    })
+    .block(format_block);
+    let p_order_text = Paragraph::new(match app.p_order {
+        Order::Draw => "Draw".to_string(),
+        Order::Play => "Play".to_string(),
+    })
+    .block(p_order_block);
     let p_deck_text = Paragraph::new(app.p_deck.clone()).block(p_deck_block);
     let p_mull_text = Paragraph::new(app.p_mull.clone().to_string()).block(p_mull_block);
     let opp_deck_text = Paragraph::new(app.opp_deck.clone()).block(opp_deck_block);
@@ -282,7 +278,6 @@ fn render_display(app: &App, frame: &mut Frame) {
     frame.render_widget(result_text, popup_chunks[5]);
 }
 
-
 // Renders the footnotes on the screen
 // Showing which commands are available in each screen
 fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
@@ -292,35 +287,34 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
             CurrentScreen::Main => Span::styled("Normal Mode", Style::default().fg(Color::Green)),
             CurrentScreen::Player => {
                 Span::styled("Player select Mode", Style::default().fg(Color::Red))
-            },
+            }
             CurrentScreen::Stats => {
                 Span::styled("Deck stats Mode", Style::default().fg(Color::Blue))
-            },
+            }
             CurrentScreen::Editing => {
                 Span::styled("Editing Game Mode", Style::default().fg(Color::White))
-            },
+            }
             CurrentScreen::Exiting => Span::styled("Exiting", Style::default().fg(Color::LightRed)),
             CurrentScreen::AddGame => {
                 Span::styled("Adding a new game", Style::default().fg(Color::Green))
-            },
+            }
             CurrentScreen::AddPlayer => {
                 Span::styled("Adding a new player", Style::default().fg(Color::Blue))
-            },
+            }
             CurrentScreen::Display => Span::styled(
                 "Dispaly Game/Player information",
                 Style::default().fg(Color::Blue),
             ),
-            CurrentScreen::ErrorPLayerNotFound => Span::styled(
-                "Error screen",
-                Style::default().fg(Color::Blue),
-            ),
-            CurrentScreen::DeckSelector => Span::styled(
-                "Deck selector screen",
-                Style::default().fg(Color::Blue),
-            ),
+            CurrentScreen::ErrorPLayerNotFound => {
+                Span::styled("Error screen", Style::default().fg(Color::Blue))
+            }
+            CurrentScreen::DeckSelector => {
+                Span::styled("Deck selector screen", Style::default().fg(Color::Blue))
+            }
             CurrentScreen::LoadPlayer => Span::styled(
                 "Loading player from database screen",
-                Style::default().fg(Color::Blue)),
+                Style::default().fg(Color::Blue),
+            ),
         }
         .to_owned(),
         // A white divider bar to separate the two sections
@@ -378,7 +372,7 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
             ),
             CurrentScreen::Stats => {
                 Span::styled("(ESC) to cancel", Style::default().fg(Color::Red))
-            },
+            }
             CurrentScreen::Editing => Span::styled(
                 "(ESC) to cancel/ (e) to add a game/ (s) to get status",
                 Style::default().fg(Color::Red),
@@ -426,7 +420,6 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
     frame.render_widget(key_notes_footer, footer_chunks[1]);
 }
 
-
 // Render the deck selector screen to facilitate choosing among previously selected decks
 fn render_deck_selector(app: &App, frame: &mut Frame, area: &[Rect]) {
     let active_style = Style::default().bg(Color::LightYellow).fg(Color::Black);
@@ -439,21 +432,17 @@ fn render_deck_selector(app: &App, frame: &mut Frame, area: &[Rect]) {
                 format!("{: <25}", d),
                 active_style,
             ))));
-        }
-        else {
+        } else {
             decks_list.push(ListItem::new(Line::from(Span::styled(
                 format!("{: <25}", d),
                 Style::default().fg(Color::Yellow),
-            ))));            
+            ))));
         }
     }
 
     let d_list = List::new(decks_list);
     frame.render_widget(d_list, area[1]);
-
-
 }
-
 
 /// Copied from the example JSON editor example from ratatui docs
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
@@ -478,23 +467,18 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         .split(popup_layout[1])[1] // Return the middle chunk
 }
 
-
 fn render_player_layout(app: &App, frame: &mut Frame, area: &[Rect]) {
     let player_layout = Layout::default()
         .direction(Direction::Vertical)
-        .constraints(vec![
-            Constraint::Percentage(10),
-            Constraint::Percentage(90),
-        ])
+        .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(90)])
         .margin(2)
         .split(area[0]);
-    
+
     let player_title_block = Block::bordered().style(Style::default());
-    let player_title = Paragraph::new(
-        Text::styled(
-            "Player name",
-            Style::default().fg(Color::LightBlue))
-    )
+    let player_title = Paragraph::new(Text::styled(
+        "Player name",
+        Style::default().fg(Color::LightBlue),
+    ))
     .block(player_title_block);
     frame.render_widget(player_title, player_layout[0]);
 
@@ -516,25 +500,21 @@ fn render_player_layout(app: &App, frame: &mut Frame, area: &[Rect]) {
     frame.render_widget(p_list, player_layout[1]);
 }
 
-fn render_deck_layout(app: &App,frame: &mut Frame, area: &[Rect]) {
+fn render_deck_layout(app: &App, frame: &mut Frame, area: &[Rect]) {
     let deck_layout = Layout::default()
         .direction(Direction::Vertical)
-        .constraints(vec![
-            Constraint::Percentage(10),
-            Constraint::Percentage(90),
-        ])
+        .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(90)])
         .margin(2)
         .split(area[0]);
 
     let decks_title_block = Block::bordered().style(Style::default());
-    let decks_title = Paragraph::new(
-        Text::styled(
-            "Player decks",
-            Style::default().fg(Color::LightBlue))
-    )
+    let decks_title = Paragraph::new(Text::styled(
+        "Player decks",
+        Style::default().fg(Color::LightBlue),
+    ))
     .block(decks_title_block);
     frame.render_widget(decks_title, deck_layout[0]);
-    
+
     // ToDo: Add list of Decks per player making it possible to select decks with arrow key
     let mut decks_list = Vec::<ListItem>::new();
 
@@ -550,5 +530,4 @@ fn render_deck_layout(app: &App,frame: &mut Frame, area: &[Rect]) {
     let d_list = List::new(decks_list).block(deck_list_block);
 
     frame.render_widget(d_list, deck_layout[1]);
-
 }

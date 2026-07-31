@@ -8,7 +8,7 @@ pub enum Order {
 
 pub enum Format {
     Pauper,
-    Modern
+    Modern,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

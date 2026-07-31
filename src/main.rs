@@ -4,11 +4,11 @@ mod game;
 mod player;
 mod ui;
 
+use app::App;
+use database::*;
+use game::{Format, Game, Order};
 use log::info;
 use player::Player;
-use game::{Game, Order, Format};
-use database::*;
-use app::App;
 use ui::ui;
 
 use serde_json;
@@ -27,12 +27,14 @@ use ratatui::{
     },
 };
 
-use std::{error::Error, io::{self, Stdout}};
+use std::{
+    error::Error,
+    io::{self, Stdout},
+};
 
 use crate::app::{CurrentScreen, CurrentlyEditingGame, CurrentlyEditingPlayer};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-
     // Creating database
     let conn: Connection = create_table()?;
 
@@ -54,15 +56,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     terminal.show_cursor()?;
 
     match res {
-        Err(err) => panic!("Program exited with err: {:?}",err),
-        _ => println!("Program finished nicely")
-    }   
+        Err(err) => panic!("Program exited with err: {:?}", err),
+        _ => println!("Program finished nicely"),
+    }
 
     Ok(())
 }
 
-fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db: &Connection) -> Result<(), Box<dyn Error>>
-{
+fn run_app(
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    app: &mut App,
+    db: &Connection,
+) -> Result<(), Box<dyn Error>> {
     loop {
         terminal.draw(|f| ui(f, app))?;
 
@@ -116,7 +121,7 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                             app.opp_deck.push(value);
                         }
                         _ => {}
-                    }
+                    },
                     KeyCode::Backspace => match app.current_editing_game {
                         Some(CurrentlyEditingGame::PlayerDeck) => {
                             app.p_deck.pop();
@@ -131,7 +136,7 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                             app.win = false;
                         }
                         _ => {}
-                    }
+                    },
                     KeyCode::Enter => {
                         app.current_screen = CurrentScreen::Main;
                         app.current_editing_player = None;
@@ -142,19 +147,18 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                                 Format::Pauper => "Pauper".to_string(),
                             },
                             p_deck: app.p_deck.clone(),
-                            p_mull: app.p_mull.clone(), 
-                            p_order: app.p_order.clone(), 
-                            opp_deck: app.p_deck.clone(), 
-                            win: app.win.clone()
+                            p_mull: app.p_mull.clone(),
+                            p_order: app.p_order.clone(),
+                            opp_deck: app.p_deck.clone(),
+                            win: app.win.clone(),
                         };
                         if !app.decks.contains(&app.p_deck) {
                             app.decks.push(app.p_deck.to_lowercase().clone());
                         }
                         // Player exists in our app and database
-                        if player_exists(db, &app.player_name.to_lowercase())?  {
+                        if player_exists(db, &app.player_name.to_lowercase())? {
                             update_player(&g, &app.player_name.to_lowercase(), db)?;
-                        }
-                        else {
+                        } else {
                             app.current_screen = CurrentScreen::ErrorPLayerNotFound;
                         }
                     }
@@ -183,37 +187,37 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                             app.current_editing_game = Some(CurrentlyEditingGame::Format)
                         }
                         _ => {}
-                    }
+                    },
                     KeyCode::Up => match app.current_editing_game {
                         Some(CurrentlyEditingGame::Format) => match app.format {
                             Format::Modern => app.format = Format::Pauper,
                             Format::Pauper => app.format = Format::Modern,
-                        }
+                        },
                         Some(CurrentlyEditingGame::PlayerOrder) => match app.p_order {
                             Order::Draw => app.p_order = Order::Play,
                             Order::Play => app.p_order = Order::Draw,
-                        }
+                        },
                         Some(CurrentlyEditingGame::Win) => match app.win {
                             true => app.win = false,
                             false => app.win = true,
-                        }
+                        },
                         _ => {}
-                    }
+                    },
                     KeyCode::Down => match app.current_editing_game {
                         Some(CurrentlyEditingGame::Format) => match app.format {
                             Format::Modern => app.format = Format::Pauper,
                             Format::Pauper => app.format = Format::Modern,
-                        }
+                        },
                         Some(CurrentlyEditingGame::PlayerOrder) => match app.p_order {
                             Order::Draw => app.p_order = Order::Play,
                             Order::Play => app.p_order = Order::Draw,
-                        }
+                        },
                         Some(CurrentlyEditingGame::Win) => match app.win {
                             true => app.win = false,
                             false => app.win = true,
-                        }
+                        },
                         _ => {}
-                    }
+                    },
                     KeyCode::Right => {
                         app.current_screen = CurrentScreen::DeckSelector;
                     }
@@ -224,8 +228,7 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                 // Adding a player requires the user to input the player name only;
                 // Todo:
                 // * Add logic to add player to the database if not present and to warn if player already present
-                CurrentScreen::AddPlayer if key.kind == KeyEventKind::Press =>
-                {
+                CurrentScreen::AddPlayer if key.kind == KeyEventKind::Press => {
                     match key.code {
                         KeyCode::Enter => {
                             app.current_screen = CurrentScreen::Main;
@@ -234,10 +237,8 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                             // Adding the player to the database
                             // but keeping track of all the players that were added
                             // in the app so we can have a list
-                            let p: Player = Player::new(
-                                 app.player_name.to_lowercase().clone(), 
-                                 vec![], 
-                            );
+                            let p: Player =
+                                Player::new(app.player_name.to_lowercase().clone(), vec![]);
                             let _ = add_player(db, &p);
                             let p = get_player_names(db)?;
                             app.add_player(&p);
@@ -257,40 +258,38 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                         _ => {}
                     }
                 }
-                CurrentScreen::LoadPlayer if key.kind == KeyEventKind::Press => {
-                    match key.code {
-                        KeyCode::Char(value) => {
-                            app.player_name.push(value);
-                        }
-                        KeyCode::Backspace => {
-                            app.player_name.pop();
-                        }
-                        KeyCode::Enter => {
-                            if player_exists(&db, &app.player_name.to_lowercase())? {
-                                info!("Player {} not in the database. Inserting it.", app.player_name);                              
-                                let p: Player = load_player(&db, &app.player_name)?;
-                                app.vec_players.push(p.name.clone());
-                                app.player_name = p.name.clone();
-                                app.decks = p.decks.clone();
-                                app.player.push(p.clone());
-                                app.current_screen = CurrentScreen::Main;
-                                app.current_editing_player = None;
-                                app.current_editing_game = None;
-                            }
-                            else {
-                                app.current_screen = CurrentScreen::ErrorPLayerNotFound;
-                            }
-
-                        }
-                        KeyCode::Esc => {
+                CurrentScreen::LoadPlayer if key.kind == KeyEventKind::Press => match key.code {
+                    KeyCode::Char(value) => {
+                        app.player_name.push(value);
+                    }
+                    KeyCode::Backspace => {
+                        app.player_name.pop();
+                    }
+                    KeyCode::Enter => {
+                        if player_exists(&db, &app.player_name.to_lowercase())? {
+                            info!(
+                                "Player {} not in the database. Inserting it.",
+                                app.player_name
+                            );
+                            let p: Player = load_player(&db, &app.player_name)?;
+                            app.vec_players.push(p.name.clone());
+                            app.player_name = p.name.clone();
+                            app.decks = p.decks.clone();
+                            app.player.push(p.clone());
                             app.current_screen = CurrentScreen::Main;
                             app.current_editing_player = None;
                             app.current_editing_game = None;
-
+                        } else {
+                            app.current_screen = CurrentScreen::ErrorPLayerNotFound
                         }
-                        _ => {}                      
                     }
-                }
+                    KeyCode::Esc => {
+                        app.current_screen = CurrentScreen::Main;
+                        app.current_editing_player = None;
+                        app.current_editing_game = None;
+                    }
+                    _ => {}
+                },
 
                 CurrentScreen::Exiting => match key.code {
                     KeyCode::Char('y') => {
@@ -308,9 +307,7 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                         app.current_editing_game = None;
                         app.player_name = "".to_string();
                     }
-                    KeyCode::Char('n') | KeyCode::Char('q') => {
-                        return Ok(())
-                    }
+                    KeyCode::Char('n') | KeyCode::Char('q') => return Ok(()),
                     _ => {}
                 },
                 CurrentScreen::ErrorPLayerNotFound => match key.code {
@@ -320,7 +317,7 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                         app.current_editing_game = None;
                     }
                     _ => {}
-                }
+                },
 
                 CurrentScreen::DeckSelector => match key.code {
                     KeyCode::Enter => {
@@ -333,16 +330,15 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, app: &mut App, db:
                         }
                         if app.deck_index < (app.decks.len() - 1) {
                             app.deck_index += 1;
-                        }
-                        else {
+                        } else {
                             app.deck_index = 0;
                         }
                     }
                     KeyCode::Esc | KeyCode::Char('q') => {
-                            app.current_screen = CurrentScreen::AddGame;
+                        app.current_screen = CurrentScreen::AddGame;
                     }
                     _ => {}
-                }
+                },
 
                 _ => {}
             }

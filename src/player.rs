@@ -3,8 +3,8 @@ use crate::game::{Game, Order};
 use std::collections::HashMap;
 use std::{fmt, println, vec, write};
 
-use serde::{Deserialize, Serialize};
 use log::info;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Player {
