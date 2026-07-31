@@ -47,7 +47,9 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .split(chunks[1]);
 
     render_player_layout(app, frame, &[inner_layout[0]]);
-    render_deck_layout(app, frame, &[inner_layout[1]]);
+    render_deck_layout(app, frame, &[inner_layout[1]],false);
+
+
 
     render_footnotes(app, frame, &chunks);
 
@@ -171,11 +173,11 @@ pub fn ui(frame: &mut Frame, app: &App) {
     }
 
     if let CurrentScreen::Display = app.current_screen {
-        render_display(&app, frame);
+        render_display(&app, frame,&[inner_layout[2]]);
     }
 
     if let CurrentScreen::DeckSelector = app.current_screen {
-        render_deck_selector(&app, frame, &inner_layout);
+        render_deck_layout(app, frame, &[inner_layout[1]],true);
     }
 
     // Basic exit screen - Copied from the example in ratatui JSON editor
@@ -217,65 +219,99 @@ pub fn ui(frame: &mut Frame, app: &App) {
     }
 }
 
-fn render_display(app: &App, frame: &mut Frame) {
-    let popup_block = Block::default()
-        .title("Game info")
-        .borders(Borders::NONE)
-        .style(Style::default().bg(Color::DarkGray));
-
-    let area = centered_rect(25, 60, frame.area());
-    frame.render_widget(popup_block, area);
-
-    let popup_chunks = Layout::default()
+fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
+    let stats_layout = Layout::default()
         .direction(Direction::Vertical)
-        .margin(1)
-        .constraints([
-            Constraint::Percentage(15),
-            Constraint::Percentage(15),
-            Constraint::Percentage(15),
-            Constraint::Percentage(15),
-            Constraint::Percentage(15),
-            Constraint::Percentage(15),
-            Constraint::Percentage(15),
-        ])
-        .split(area);
+        .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(90)])
+        .margin(2)
+        .split(area[0]);
 
-    let format_block = Block::default().title("Format").borders(Borders::ALL);
-    let p_deck_block = Block::default().title("Player deck").borders(Borders::ALL);
-    let p_mull_block = Block::default()
-        .title("Player mulligan")
-        .borders(Borders::ALL);
-    let p_order_block = Block::default().title("Player order").borders(Borders::ALL);
-    let opp_deck_block = Block::default()
-        .title("Opponent deck")
-        .borders(Borders::ALL);
-    let result_block = Block::default().title("Match Result").borders(Borders::ALL);
+    let decks_title_block = Block::bordered().style(Style::default());
+    let decks_title = Paragraph::new(Text::styled(
+        "Stats",
+        Style::default().fg(Color::LightBlue),
+    ))
+    .block(decks_title_block);
+    frame.render_widget(decks_title, stats_layout[0]);
 
-    let format_text = Paragraph::new(match app.format {
-        Format::Modern => "Modern".to_string(),
-        Format::Pauper => "Pauper".to_string(),
-    })
-    .block(format_block);
-    let p_order_text = Paragraph::new(match app.p_order {
-        Order::Draw => "Draw".to_string(),
-        Order::Play => "Play".to_string(),
-    })
-    .block(p_order_block);
-    let p_deck_text = Paragraph::new(app.p_deck.clone()).block(p_deck_block);
-    let p_mull_text = Paragraph::new(app.p_mull.clone().to_string()).block(p_mull_block);
-    let opp_deck_text = Paragraph::new(app.opp_deck.clone()).block(opp_deck_block);
-    let result_text = Paragraph::new(match app.win {
-        true => "Win",
-        false => "Lose",
-    })
-    .block(result_block);
+    let stats_table = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![
+            Constraint::Percentage(10), // decks
+            Constraint::Percentage(18), // Num Games
+            Constraint::Percentage(18), // P/D
+            Constraint::Percentage(18), // Wins
+            Constraint::Percentage(18), // Win rate
+            Constraint::Percentage(18), // Avr mulligan
+            ]    
+        )
+        .margin(2)
+        .split(stats_layout[1]);
 
-    frame.render_widget(format_text, popup_chunks[0]);
-    frame.render_widget(p_deck_text, popup_chunks[1]);
-    frame.render_widget(p_mull_text, popup_chunks[2]);
-    frame.render_widget(p_order_text, popup_chunks[3]);
-    frame.render_widget(opp_deck_text, popup_chunks[4]);
-    frame.render_widget(result_text, popup_chunks[5]);
+
+    // if Player has a deck selected we'll show the stats
+    if !app.p_deck.is_empty() || !app.player.is_empty() {
+        let p = app.player.get(0).unwrap();
+        match p.get_deck_stats(app.p_deck.clone()) {
+            Ok(stats) => {
+                let mut deck_names = Vec::<ListItem>::new();
+                let mut deck_num_games = Vec::<ListItem>::new();
+                let mut play_draw = Vec::<ListItem>::new();
+                let mut wins = Vec::<ListItem>::new();
+
+                for (d,n) in stats.deck_played_against.iter() {
+                    deck_names.push(ListItem::new(Line::from(Span::styled(
+                        format!("{: <25}", d),
+                        Style::default().fg(Color::Red),
+                    ))));
+                    deck_num_games.push(ListItem::new(Line::from(Span::styled(
+                        format!("{: <25}", n),
+                        Style::default().fg(Color::Red),
+                    ))));
+                    let _p = stats.play_draw_order.get(d).unwrap();
+                    let _d = (_p - n).abs();
+                    play_draw.push(ListItem::new(Line::from(Span::styled(
+                        format!("{}/{}", _p,_d),
+                        Style::default().fg(Color::Red),
+                    ))));
+                    let _w = stats.wins_against.get(d).unwrap();
+                    wins.push(ListItem::new(Line::from(Span::styled(
+                        format!("{}", _w),
+                        Style::default().fg(Color::Red),
+                    ))));
+                }
+
+                let deck_names_block = Block::bordered().style(Style::default().fg(Color::DarkGray));
+                let deck_names_list = List::new(deck_names).block(deck_names_block);
+
+                frame.render_widget(deck_names_list, stats_table[0]);       
+
+            }
+            Err(err) => {
+                frame.render_widget(Clear, frame.area()); //this clears the entire screen and anything already drawn
+                let popup_block = Block::default()
+                    .title("ERROR")
+                    .borders(Borders::NONE)
+                    .style(Style::default().bg(Color::Red));
+
+                let exit_text = Text::styled(
+                    err,
+                    Style::default().fg(Color::Black),
+                );
+                // the `trim: false` will stop the text from being cut off when over the edge of the block
+                let exit_paragraph = Paragraph::new(exit_text)
+                    .block(popup_block)
+                    .wrap(Wrap { trim: false });
+
+                let area = centered_rect(60, 25, frame.area());
+                frame.render_widget(exit_paragraph, area);
+
+            }
+        }
+
+
+    }
+
 }
 
 // Renders the footnotes on the screen
@@ -420,30 +456,6 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
     frame.render_widget(key_notes_footer, footer_chunks[1]);
 }
 
-// Render the deck selector screen to facilitate choosing among previously selected decks
-fn render_deck_selector(app: &App, frame: &mut Frame, area: &[Rect]) {
-    let active_style = Style::default().bg(Color::LightYellow).fg(Color::Black);
-    let mut decks_list = Vec::<ListItem>::new();
-
-    //Iterate over players list
-    for d in app.decks.iter() {
-        if d.eq(&app.p_deck) {
-            decks_list.push(ListItem::new(Line::from(Span::styled(
-                format!("{: <25}", d),
-                active_style,
-            ))));
-        } else {
-            decks_list.push(ListItem::new(Line::from(Span::styled(
-                format!("{: <25}", d),
-                Style::default().fg(Color::Yellow),
-            ))));
-        }
-    }
-
-    let d_list = List::new(decks_list);
-    frame.render_widget(d_list, area[1]);
-}
-
 /// Copied from the example JSON editor example from ratatui docs
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     // Cut the given rectangle into three vertical pieces
@@ -500,7 +512,7 @@ fn render_player_layout(app: &App, frame: &mut Frame, area: &[Rect]) {
     frame.render_widget(p_list, player_layout[1]);
 }
 
-fn render_deck_layout(app: &App, frame: &mut Frame, area: &[Rect]) {
+fn render_deck_layout(app: &App, frame: &mut Frame, area: &[Rect], deck_selector: bool) {
     let deck_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(90)])
@@ -517,12 +529,29 @@ fn render_deck_layout(app: &App, frame: &mut Frame, area: &[Rect]) {
 
     // ToDo: Add list of Decks per player making it possible to select decks with arrow key
     let mut decks_list = Vec::<ListItem>::new();
-
-    for d in app.decks.iter() {
-        decks_list.push(ListItem::new(Line::from(Span::styled(
-            format!("{: <25}", d),
-            Style::default().fg(Color::Red),
-        ))));
+    if deck_selector {
+        let active_style = Style::default().bg(Color::LightYellow).fg(Color::Black);
+        for d in app.decks.iter() {
+            if d.eq(&app.p_deck) {
+                decks_list.push(ListItem::new(Line::from(Span::styled(
+                    format!("{: <25}", d),
+                    active_style,
+                ))));
+            } else {
+                decks_list.push(ListItem::new(Line::from(Span::styled(
+                    format!("{: <25}", d),
+                    Style::default().fg(Color::Yellow),
+                ))));
+            }
+        }
+    }
+    else {
+        for d in app.decks.iter() {
+            decks_list.push(ListItem::new(Line::from(Span::styled(
+                format!("{: <25}", d),
+                Style::default().fg(Color::Red),
+            ))));
+        }
     }
 
     let deck_list_block = Block::bordered().style(Style::default().fg(Color::DarkGray));
