@@ -29,7 +29,7 @@ pub fn create_table() -> Result<Connection, Box<dyn Error>> {
     return Ok(conn);
 }
 
-pub fn retrieve_player(conn: &Connection, key: &String) -> Result<Player, Box<dyn Error>> {
+pub fn load_player(conn: &Connection, key: &String) -> Result<Player, Box<dyn Error>> {
     let data: Vec<u8> = conn.query_row(
         "SELECT data FROM player WHERE name = ?1",
         params![key],
@@ -57,7 +57,7 @@ pub fn update_player(
     player: &String,
     conn: &Connection,
 ) -> Result<(), Box<dyn Error>> {
-    let mut p: Player = retrieve_player(conn, player)?;
+    let mut p: Player = load_player(conn, player)?;
     p.add_game(game);
     let json_data: Vec<u8> = serde_json::to_vec(&p)?;
     conn.execute(

@@ -1,4 +1,5 @@
 use crate::game::{Game, Order, Format};
+use crate::player::Player;
 use std::{io, string};
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
@@ -19,6 +20,7 @@ pub enum CurrentScreen {
     Stats,
     Exiting,
     AddPlayer,
+    LoadPlayer,
     AddGame,
     Display,
     ErrorPLayerNotFound,
@@ -36,6 +38,7 @@ pub enum CurrentlyEditingGame {
 
 pub enum CurrentlyEditingPlayer {
     PlayerName,
+    LoadPlayer,
 }
 
 pub struct App {
@@ -43,6 +46,7 @@ pub struct App {
     pub vec_players: Vec<String>,
     pub decks: Vec<String>,
     pub deck_index: usize,
+    pub player: Vec<Player>,
     pub current_screen: CurrentScreen,
     pub current_editing_game: Option<CurrentlyEditingGame>,
     pub current_editing_player: Option<CurrentlyEditingPlayer>,
@@ -61,6 +65,7 @@ impl App {
             vec_players: vec![],
             decks: vec![],
             deck_index: 0,
+            player: vec![],
             current_screen: CurrentScreen::Main,
             current_editing_game: None,
             current_editing_player: None,

@@ -7,7 +7,7 @@ use ratatui::{
 };
 
 use crate::{
-    app::{App, CurrentScreen, CurrentlyEditingGame}, game::{Format, Order},
+    app::{App, CurrentScreen, CurrentlyEditingGame, CurrentlyEditingPlayer}, game::{Format, Order}, player,
 };
 
 
@@ -22,15 +22,6 @@ pub fn ui(frame: &mut Frame, app: &App) {
         ])
         .split(frame.area());
 
-    // Layout for showing players and decks
-    let inner_layout = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints(vec![
-            Constraint::Percentage(25),
-            Constraint::Percentage(75),
-        ])
-        .split(chunks[1]);
-
     let title_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default());
@@ -43,6 +34,54 @@ pub fn ui(frame: &mut Frame, app: &App) {
 
     frame.render_widget(title, chunks[0]);
 
+    // Layout for showing players and decks
+    let inner_layout = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(vec![
+            Constraint::Percentage(10),
+            Constraint::Percentage(10),
+            Constraint::Percentage(80),
+        ])
+        .margin(2)
+        .split(chunks[1]);
+    
+    let player_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![
+            Constraint::Percentage(10),
+            Constraint::Percentage(90),
+        ])
+        .margin(2)
+        .split(inner_layout[0]);
+    
+    let player_title_block = Block::bordered().style(Style::default());
+    let player_title = Paragraph::new(
+        Text::styled(
+            "Player name",
+            Style::default().fg(Color::LightBlue))
+    )
+    .block(player_title_block);
+    frame.render_widget(player_title, player_layout[0]);
+
+
+    let deck_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![
+            Constraint::Percentage(10),
+            Constraint::Percentage(90),
+        ])
+        .margin(2)
+        .split(inner_layout[1]);
+
+    let decks_title_block = Block::bordered().style(Style::default());
+    let decks_title = Paragraph::new(
+        Text::styled(
+            "Player decks",
+            Style::default().fg(Color::LightBlue))
+    )
+    .block(decks_title_block);
+    frame.render_widget(decks_title, deck_layout[0]);
+    
     // ToDo: Add list of Decks per player making it possible to select decks with arrow key
     let mut player_list = Vec::<ListItem>::new();
     let mut decks_list = Vec::<ListItem>::new();
@@ -61,11 +100,14 @@ pub fn ui(frame: &mut Frame, app: &App) {
         ))));
     }
 
-    let p_list = List::new(player_list);
-    let d_list = List::new(decks_list);
+    let player_list_block = Block::bordered().style(Style::default().fg(Color::DarkGray));
+    let deck_list_block = Block::bordered().style(Style::default().fg(Color::DarkGray));
 
-    frame.render_widget(p_list, inner_layout[0]);
-    frame.render_widget(d_list, inner_layout[1]);
+    let p_list = List::new(player_list).block(player_list_block);
+    let d_list = List::new(decks_list).block(deck_list_block);
+
+    frame.render_widget(p_list, player_layout[1]);
+    frame.render_widget(d_list, deck_layout[1]);
 
     render_footnotes(app, frame, &chunks);
 
@@ -147,24 +189,50 @@ pub fn ui(frame: &mut Frame, app: &App) {
     }
 
     // Edit player name in the app
-    if app.current_editing_player.is_some() {
-        let popup_block = Block::default()
-            .title("Enter Game information")
-            .borders(Borders::NONE)
-            .style(Style::default().bg(Color::DarkGray));
+    if let Some(editing) = & app.current_editing_player  {
+        
+        match editing {
+            CurrentlyEditingPlayer::PlayerName => {
+                let popup_block = Block::default()
+                    .title("Enter Player information")
+                    .borders(Borders::NONE)
+                    .style(Style::default().bg(Color::DarkGray));
 
-        let area = centered_rect(50, 10, frame.area());
-        frame.render_widget(popup_block, area);
+                let area = centered_rect(50, 10, frame.area());
+                frame.render_widget(popup_block, area);
 
-        let popup_chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .margin(1)
-            .constraints([Constraint::Percentage(100)])
-            .split(area);
+                let popup_chunks = Layout::default()
+                    .direction(Direction::Vertical)
+                    .margin(1)
+                    .constraints([Constraint::Percentage(100)])
+                    .split(area);
 
-        let name_block = Block::default().title("Player name").borders(Borders::ALL);
-        let name_text = Paragraph::new(app.player_name.clone()).block(name_block);
-        frame.render_widget(name_text, popup_chunks[0]);
+                let name_block = Block::default().title("Player name").borders(Borders::ALL);
+                let name_text = Paragraph::new(app.player_name.clone()).block(name_block);
+                frame.render_widget(name_text, popup_chunks[0]);
+            }
+            CurrentlyEditingPlayer::LoadPlayer => {
+                let popup_block = Block::default()
+                    .title("Player to load from the database")
+                    .borders(Borders::NONE)
+                    .style(Style::default().bg(Color::LightBlue));
+
+                let area = centered_rect(50, 10, frame.area());
+                frame.render_widget(popup_block, area);
+
+                let popup_chunks = Layout::default()
+                    .direction(Direction::Vertical)
+                    .margin(1)
+                    .constraints([Constraint::Percentage(100)])
+                    .split(area);
+
+                let name_block = Block::default().title("Player name").borders(Borders::ALL);
+                let name_text = Paragraph::new(app.player_name.clone()).block(name_block);
+                frame.render_widget(name_text, popup_chunks[0]);
+            }
+            _ => {}
+        }
+        
     }
 
     if let CurrentScreen::Display = app.current_screen {
@@ -172,7 +240,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
     }
 
     if let CurrentScreen::DeckSelector = app.current_screen {
-        render_deck_selector(&app, frame);
+        render_deck_selector(&app, frame,&inner_layout);
     }
 
     // Basic exit screen - Copied from the example in ratatui JSON editor
@@ -310,7 +378,10 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
             CurrentScreen::DeckSelector => Span::styled(
                 "Deck selector screen",
                 Style::default().fg(Color::Blue),
-            )
+            ),
+            CurrentScreen::LoadPlayer => Span::styled(
+                "Loading player from database screen",
+                Style::default().fg(Color::Blue)),
         }
         .to_owned(),
         // A white divider bar to separate the two sections
@@ -397,6 +468,10 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
                 "(ESC) / (q) back deck editing screen",
                 Style::default().fg(Color::Red),
             ),
+            CurrentScreen::LoadPlayer => Span::styled(
+                "(ESC) back deck editing screen / (ENTER) to load from database",
+                Style::default().fg(Color::Red),
+            ),
         }
     };
 
@@ -414,27 +489,8 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
 
 
 // Render the deck selector screen to facilitate choosing among previously selected decks
-fn render_deck_selector(app: &App, frame: &mut Frame) {
-    let popup_block = Block::default()
-        .title("Select a deck")
-        .borders(Borders::NONE)
-        .style(Style::default().bg(Color::LightYellow));
-
-    let small_area = centered_rect(25, 25, frame.area());
-    
+fn render_deck_selector(app: &App, frame: &mut Frame, area: &[Rect]) {
     let active_style = Style::default().bg(Color::LightYellow).fg(Color::Black);
-
-
-    let deck_selector = Layout::default()
-        .direction(Direction::Vertical)
-        .margin(1)
-        .constraints([
-            Constraint::Percentage(100),
-        ])
-        .split(small_area);
-    frame.render_widget(popup_block, small_area);
-
-
     let mut decks_list = Vec::<ListItem>::new();
 
     //Iterate over players list
@@ -454,7 +510,7 @@ fn render_deck_selector(app: &App, frame: &mut Frame) {
     }
 
     let d_list = List::new(decks_list);
-    frame.render_widget(d_list, deck_selector[0]);
+    frame.render_widget(d_list, area[1]);
 
 
 }
