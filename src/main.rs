@@ -149,7 +149,7 @@ fn run_app(
                             p_deck: app.p_deck.clone(),
                             p_mull: app.p_mull.clone(),
                             p_order: app.p_order.clone(),
-                            opp_deck: app.p_deck.clone(),
+                            opp_deck: app.opp_deck.clone(),
                             win: app.win.clone(),
                         };
                         if !app.decks.contains(&app.p_deck) {
