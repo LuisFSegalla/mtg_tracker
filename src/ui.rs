@@ -218,15 +218,11 @@ pub fn ui(frame: &mut Frame, app: &App) {
     }
 }
 
-
 fn render_column(frame: &mut Frame, area: &[Rect]) {
     let column = Layout::default()
         .direction(Direction::Vertical)
         .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(90)])
         .split(area[0]);
-
-    
-
 }
 
 fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
@@ -393,86 +389,109 @@ fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
                 let deck_avr_mull_list = List::new(mulls).block(deck_avr_mull_block);
                 let deck_win_rate_list = List::new(wr).block(deck_win_rate_block);
 
-
                 // Render the title for the deck column
                 let deck_column_title_width = deck_column[0].width.saturating_sub(2) as usize;
-                let text = format!("{:^width$}", format!("Deck"), width = deck_column_title_width.clone());
+                let text = format!(
+                    "{:^width$}",
+                    format!("Deck"),
+                    width = deck_column_title_width.clone()
+                );
                 let deck_column_name_block = Block::default()
                     .borders(Borders::ALL)
                     .style(Style::default().fg(Color::DarkGray));
                 let paragraph = Paragraph::new(Span::styled(
-                        format!("{}", text.clone()),
-                        Style::default().fg(Color::Red),
-                    ))
-                    .block(deck_column_name_block);
+                    format!("{}", text.clone()),
+                    Style::default().fg(Color::Red),
+                ))
+                .block(deck_column_name_block);
                 frame.render_widget(paragraph, deck_column[0]);
-                
+
                 // Render the title for the number of games column
-                let num_games_column_title_width = num_games_column[0].width.saturating_sub(2) as usize;
-                let text = format!("{:^width$}", format!("Number of games"), width = num_games_column_title_width.clone());
+                let num_games_column_title_width =
+                    num_games_column[0].width.saturating_sub(2) as usize;
+                let text = format!(
+                    "{:^width$}",
+                    format!("Number of games"),
+                    width = num_games_column_title_width.clone()
+                );
                 let num_games_column_name_block = Block::default()
                     .borders(Borders::ALL)
                     .style(Style::default().fg(Color::DarkGray));
                 let paragraph = Paragraph::new(Span::styled(
-                        format!("{}", text.clone()),
-                        Style::default().fg(Color::Red),
-                    ))
-                    .block(num_games_column_name_block);
+                    format!("{}", text.clone()),
+                    Style::default().fg(Color::Red),
+                ))
+                .block(num_games_column_name_block);
                 frame.render_widget(paragraph, num_games_column[0]);
 
                 // Render the title for the number of games column
-                let play_draw_column_title_width = play_draw_column[0].width.saturating_sub(2) as usize;
-                let text = format!("{:^width$}", format!("Play / Draw"), width = play_draw_column_title_width.clone());
+                let play_draw_column_title_width =
+                    play_draw_column[0].width.saturating_sub(2) as usize;
+                let text = format!(
+                    "{:^width$}",
+                    format!("Play / Draw"),
+                    width = play_draw_column_title_width.clone()
+                );
                 let play_draw_column_name_block = Block::default()
                     .borders(Borders::ALL)
                     .style(Style::default().fg(Color::DarkGray));
                 let paragraph = Paragraph::new(Span::styled(
-                        format!("{}", text.clone()),
-                        Style::default().fg(Color::Red),
-                    ))
-                    .block(play_draw_column_name_block);
+                    format!("{}", text.clone()),
+                    Style::default().fg(Color::Red),
+                ))
+                .block(play_draw_column_name_block);
                 frame.render_widget(paragraph, play_draw_column[0]);
 
                 // Render the number of wins against the deck
                 let wins_column_title_width = wins_column[0].width.saturating_sub(2) as usize;
-                let text = format!("{:^width$}", format!("Wins"), width = wins_column_title_width.clone());
+                let text = format!(
+                    "{:^width$}",
+                    format!("Wins"),
+                    width = wins_column_title_width.clone()
+                );
                 let wins_column_name_block = Block::default()
                     .borders(Borders::ALL)
                     .style(Style::default().fg(Color::DarkGray));
                 let paragraph = Paragraph::new(Span::styled(
-                        format!("{}", text.clone()),
-                        Style::default().fg(Color::Red),
-                    ))
-                    .block(wins_column_name_block);
+                    format!("{}", text.clone()),
+                    Style::default().fg(Color::Red),
+                ))
+                .block(wins_column_name_block);
                 frame.render_widget(paragraph, wins_column[0]);
 
                 // Render the average mulligan against the deck
                 let mulls_column_title_width = mulls_column[0].width.saturating_sub(2) as usize;
-                let text = format!("{:^width$}", format!("Average mulligan"), width = mulls_column_title_width.clone());
+                let text = format!(
+                    "{:^width$}",
+                    format!("Average mulligan"),
+                    width = mulls_column_title_width.clone()
+                );
                 let mulls_column_name_block = Block::default()
                     .borders(Borders::ALL)
                     .style(Style::default().fg(Color::DarkGray));
                 let paragraph = Paragraph::new(Span::styled(
-                        format!("{}", text.clone()),
-                        Style::default().fg(Color::Red),
-                    ))
-                    .block(mulls_column_name_block);
+                    format!("{}", text.clone()),
+                    Style::default().fg(Color::Red),
+                ))
+                .block(mulls_column_name_block);
                 frame.render_widget(paragraph, mulls_column[0]);
-
 
                 // Render the average win rate against the deck
                 let wr_column_title_width = win_rate_column[0].width.saturating_sub(2) as usize;
-                let text = format!("{:^width$}", format!("Average win rate"), width = wr_column_title_width.clone());
+                let text = format!(
+                    "{:^width$}",
+                    format!("Average win rate"),
+                    width = wr_column_title_width.clone()
+                );
                 let wr_column_name_block = Block::default()
                     .borders(Borders::ALL)
                     .style(Style::default().fg(Color::DarkGray));
                 let paragraph = Paragraph::new(Span::styled(
-                        format!("{}", text.clone()),
-                        Style::default().fg(Color::Red),
-                    ))
-                    .block(wr_column_name_block);
+                    format!("{}", text.clone()),
+                    Style::default().fg(Color::Red),
+                ))
+                .block(wr_column_name_block);
                 frame.render_widget(paragraph, win_rate_column[0]);
-
 
                 // Renders the stats for each deck
                 frame.render_widget(deck_names_list, deck_column[1]);
