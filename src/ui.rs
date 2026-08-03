@@ -226,31 +226,32 @@ fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
         .margin(2)
         .split(area[0]);
 
+    let width = stats_layout[0].width.saturating_sub(2) as usize;
+    let fmt = format!("{:^width$}", format!("Deck: {} stats", app.p_deck), width = width.clone());
     let decks_title_block = Block::bordered().style(Style::default());
     let decks_title = Paragraph::new(Text::styled(
-        "Stats",
+        fmt,
         Style::default().fg(Color::LightBlue),
     ))
     .block(decks_title_block);
     frame.render_widget(decks_title, stats_layout[0]);
 
     let stats_table = Layout::default()
-        .direction(Direction::Vertical)
+        .direction(Direction::Horizontal)
         .constraints(vec![
-            Constraint::Percentage(10), // decks
-            Constraint::Percentage(18), // Num Games
+            Constraint::Percentage(18), // decks
+            Constraint::Percentage(10), // Num Games
             Constraint::Percentage(18), // P/D
             Constraint::Percentage(18), // Wins
             Constraint::Percentage(18), // Win rate
             Constraint::Percentage(18), // Avr mulligan
-            ]    
+            ]
         )
         .margin(2)
         .split(stats_layout[1]);
-
-
+    
     // if Player has a deck selected we'll show the stats
-    if !app.p_deck.is_empty() || !app.player.is_empty() {
+    if !app.p_deck.is_empty() && !app.player.is_empty() {
         let p = app.player.get(0).unwrap();
         match p.get_deck_stats(app.p_deck.clone()) {
             Ok(stats) => {
@@ -258,33 +259,85 @@ fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
                 let mut deck_num_games = Vec::<ListItem>::new();
                 let mut play_draw = Vec::<ListItem>::new();
                 let mut wins = Vec::<ListItem>::new();
+                let mut mulls = Vec::<ListItem>::new();
+                let mut wr = Vec::<ListItem>::new();
 
                 for (d,n) in stats.deck_played_against.iter() {
+
+                    // Adding deck names list
+                    let mut text_width = stats_table[0].width.saturating_sub(2) as usize;
+                    let mut format = format!("{:^width$}", format!("{}",d), width = text_width.clone());
                     deck_names.push(ListItem::new(Line::from(Span::styled(
-                        format!("{: <25}", d),
+                        format.clone(),
                         Style::default().fg(Color::Red),
                     ))));
+
+                    // Adding number of games played against decks
+                    text_width = stats_table[1].width.saturating_sub(2) as usize;
+                    format = format!("{:^width$}", format!("{}",n), width = text_width.clone());
                     deck_num_games.push(ListItem::new(Line::from(Span::styled(
-                        format!("{: <25}", n),
+                        format!("{: <25}", format.clone()),
                         Style::default().fg(Color::Red),
                     ))));
+
+                    // Adding Play/Draw order
                     let _p = stats.play_draw_order.get(d).unwrap();
                     let _d = (_p - n).abs();
+                    text_width = stats_table[2].width.saturating_sub(2) as usize;
+                    format = format!("{:^width$}", format!("{}/{}",_p,_d), width = text_width.clone());
                     play_draw.push(ListItem::new(Line::from(Span::styled(
-                        format!("{}/{}", _p,_d),
+                        format!("{}", format.clone()),
                         Style::default().fg(Color::Red),
                     ))));
+                    
+                    // Adding number of wins against the deck
                     let _w = stats.wins_against.get(d).unwrap();
+                    text_width = stats_table[3].width.saturating_sub(2) as usize;
+                    format = format!("{:^width$}", format!("{}",_w), width = text_width.clone());
                     wins.push(ListItem::new(Line::from(Span::styled(
-                        format!("{}", _w),
+                        format!("{}", format.clone()),
+                        Style::default().fg(Color::Red),
+                    ))));
+
+                    // Adding number of wins against the deck
+                    let _mull = stats.avr_mull.get(d).unwrap();
+                    text_width = stats_table[4].width.saturating_sub(2) as usize;
+                    format = format!("{:^width$}", format!("{}",_mull), width = text_width.clone());
+                    mulls.push(ListItem::new(Line::from(Span::styled(
+                        format!("{}", format.clone()),
+                        Style::default().fg(Color::Red),
+                    ))));
+
+                    // Adding win rate of deck
+                    let _wr = stats.win_rate.get(d).unwrap();
+                    text_width = stats_table[5].width.saturating_sub(2) as usize;
+                    format = format!("{:^width$}", format!("{}",_wr), width = text_width.clone());
+                    wr.push(ListItem::new(Line::from(Span::styled(
+                        format!("{}", format.clone()),
                         Style::default().fg(Color::Red),
                     ))));
                 }
 
-                let deck_names_block = Block::bordered().style(Style::default().fg(Color::DarkGray));
+                let deck_names_block = Block::default().borders(Borders::ALL).style(Style::default().fg(Color::DarkGray));
+                let deck_num_games_block = Block::default().borders(Borders::ALL).style(Style::default().fg(Color::DarkGray));
+                let deck_play_draw_block = Block::default().borders(Borders::ALL).style(Style::default().fg(Color::DarkGray));
+                let deck_wins_block = Block::default().borders(Borders::ALL).style(Style::default().fg(Color::DarkGray));
+                let deck_avr_mull_block = Block::default().borders(Borders::ALL).style(Style::default().fg(Color::DarkGray));
+                let deck_win_rate_block = Block::default().borders(Borders::ALL).style(Style::default().fg(Color::DarkGray));
+                
                 let deck_names_list = List::new(deck_names).block(deck_names_block);
+                let deck_num_games_list = List::new(deck_num_games).block(deck_num_games_block);
+                let deck_play_draw_list = List::new(play_draw).block(deck_play_draw_block);
+                let deck_wins_list = List::new(wins).block(deck_wins_block);
+                let deck_avr_mull_list = List::new(mulls).block(deck_avr_mull_block);
+                let deck_win_rate_list = List::new(wr).block(deck_win_rate_block);
 
-                frame.render_widget(deck_names_list, stats_table[0]);       
+                frame.render_widget(deck_names_list, stats_table[0]);
+                frame.render_widget(deck_num_games_list, stats_table[1]);
+                frame.render_widget(deck_play_draw_list, stats_table[2]);
+                frame.render_widget(deck_wins_list, stats_table[3]);
+                frame.render_widget(deck_avr_mull_list, stats_table[4]);
+                frame.render_widget(deck_win_rate_list, stats_table[5]);
 
             }
             Err(err) => {
