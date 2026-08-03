@@ -132,9 +132,6 @@ fn run_app(
                         Some(CurrentlyEditingGame::OpponentDeck) => {
                             app.opp_deck.pop();
                         }
-                        Some(CurrentlyEditingGame::Win) => {
-                            app.win = false;
-                        }
                         _ => {}
                     },
                     KeyCode::Enter => {
@@ -146,10 +143,10 @@ fn run_app(
                                 Format::Modern => "Modern".to_string(),
                                 Format::Pauper => "Pauper".to_string(),
                             },
-                            p_deck: app.p_deck.clone(),
+                            p_deck: app.p_deck.to_lowercase().clone(),
                             p_mull: app.p_mull.clone(),
                             p_order: app.p_order.clone(),
-                            opp_deck: app.opp_deck.clone(),
+                            opp_deck: app.opp_deck.to_lowercase().clone(),
                             win: app.win.clone(),
                         };
                         if !app.decks.contains(&app.p_deck) {
@@ -290,13 +287,12 @@ fn run_app(
                     }
                     _ => {}
                 },
-
                 CurrentScreen::Exiting => match key.code {
                     KeyCode::Char('y') => {
                         return Ok(());
                     }
                     KeyCode::Char('n') | KeyCode::Char('q') => {
-                        return Ok(());
+                        app.current_screen = CurrentScreen::Main;
                     }
                     _ => {}
                 },
@@ -318,10 +314,10 @@ fn run_app(
                     }
                     _ => {}
                 },
-
                 CurrentScreen::DeckSelector => match key.code {
                     KeyCode::Enter => {
                         app.current_screen = CurrentScreen::AddGame;
+                        app.deck_index = 0;
                     }
                     KeyCode::Tab => {
                         match app.decks.get(app.deck_index) {
@@ -339,7 +335,6 @@ fn run_app(
                     }
                     _ => {}
                 },
-
                 _ => {}
             }
         }
