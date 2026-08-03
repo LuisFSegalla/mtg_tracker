@@ -1,6 +1,7 @@
 use crate::game::{Game, Order};
 
 use std::collections::HashMap;
+use std::hash::Hash;
 use std::{fmt, vec, write};
 
 use log::info;
@@ -16,12 +17,13 @@ pub struct Player {
     games_per_deck: HashMap<String, i32>,
 }
 
+# [derive(Debug)]
 pub struct Stats {
     pub deck_played_against: HashMap<String, i32>,
     pub play_draw_order: HashMap<String, i32>,
     pub wins_against: HashMap<String, i32>,
-    pub win_rate: f64,
-    pub avr_mull: f64,
+    pub avr_mull: HashMap<String, f32>,
+    pub win_rate: HashMap<String, f32>,
 }
 
 impl fmt::Display for Player {
@@ -94,18 +96,19 @@ impl Player {
                 .cloned()
                 .collect();
 
-            let avr_mull = (games_with_deck.iter().fold(0, |acc, x| acc + x.p_mull) as f64)
-                / (games_with_deck.len() as f64);
-
             let mut played_against: HashMap<String, i32> = HashMap::from([]);
             let mut order_vs: HashMap<String, i32> = HashMap::from([]);
             let mut wins: HashMap<String, i32> = HashMap::from([]);
+            let mut accumulated_mulls: HashMap<String, f32> = HashMap::from([]);
             for g in games_with_deck.iter() {
                 // Iterate over the hash map adding a match against each deck
                 *played_against.entry(g.opp_deck.clone()).or_insert(0) += 1;
-
+                *accumulated_mulls.entry(g.opp_deck.clone()).or_insert(0.0) += g.p_mull as f32;
+                
                 if g.p_order == Order::Play {
                     *order_vs.entry(g.opp_deck.clone()).or_insert(0) += 1;
+                } else {
+                    let _ = *order_vs.entry(g.opp_deck.clone()).or_insert(0);
                 }
 
                 if g.win {
@@ -114,13 +117,23 @@ impl Player {
                     let _ = *wins.entry(g.opp_deck.clone()).or_insert(0);
                 }
             }
-            let wr= self.win_rate.get(&deck).unwrap_or(&0.0);
+
+            let mut mulls: HashMap<String, f32> = HashMap::from([]);
+            let mut wr: HashMap<String, f32> = HashMap::from([]);
+
+            for (deck,num) in accumulated_mulls.iter() {
+                let num_games = *played_against.get(&deck.clone()).unwrap() as f32;
+                let wins = *wins.get(&deck.clone()).unwrap() as f32;
+                *mulls.entry(deck.clone()).or_insert(0.0) = num / num_games;
+                *wr.entry(deck.clone()).or_insert(0.0) = wins / num_games;
+            }
+
             let stats = Stats {
                 deck_played_against: played_against,
                 play_draw_order: order_vs,
                 wins_against: wins,
-                win_rate: wr.clone(),
-                avr_mull: avr_mull
+                avr_mull: mulls,
+                win_rate: wr,
             };
 
             Ok(stats)
