@@ -17,7 +17,7 @@ pub struct Player {
     games_per_deck: HashMap<String, i32>,
 }
 
-# [derive(Debug)]
+#[derive(Debug)]
 pub struct Stats {
     pub deck_played_against: HashMap<String, i32>,
     pub play_draw_order: HashMap<String, i32>,
@@ -81,7 +81,7 @@ impl Player {
         *self.win_rate.entry(deck.clone()).or_insert(0.0) = (wins / games) as f64;
     }
 
-    pub fn get_deck_stats(&self, deck: String) -> Result<Stats, String>{
+    pub fn get_deck_stats(&self, deck: String) -> Result<Stats, String> {
         if !self.decks.contains(&deck) {
             Err("Deck not registered for this {self.name}".to_string())
         } else {
@@ -104,7 +104,7 @@ impl Player {
                 // Iterate over the hash map adding a match against each deck
                 *played_against.entry(g.opp_deck.clone()).or_insert(0) += 1;
                 *accumulated_mulls.entry(g.opp_deck.clone()).or_insert(0.0) += g.p_mull as f32;
-                
+
                 if g.p_order == Order::Play {
                     *order_vs.entry(g.opp_deck.clone()).or_insert(0) += 1;
                 } else {
@@ -121,7 +121,7 @@ impl Player {
             let mut mulls: HashMap<String, f32> = HashMap::from([]);
             let mut wr: HashMap<String, f32> = HashMap::from([]);
 
-            for (deck,num) in accumulated_mulls.iter() {
+            for (deck, num) in accumulated_mulls.iter() {
                 let num_games = *played_against.get(&deck.clone()).unwrap() as f32;
                 let wins = *wins.get(&deck.clone()).unwrap() as f32;
                 *mulls.entry(deck.clone()).or_insert(0.0) = num / num_games;
