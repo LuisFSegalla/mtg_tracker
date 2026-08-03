@@ -171,6 +171,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
     }
 
     if let CurrentScreen::Display = app.current_screen {
+        render_deck_layout(app, frame, &[inner_layout[1]], true);
         render_display(&app, frame, &[inner_layout[2]]);
     }
 
@@ -217,6 +218,17 @@ pub fn ui(frame: &mut Frame, app: &App) {
     }
 }
 
+
+fn render_column(frame: &mut Frame, area: &[Rect]) {
+    let column = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(90)])
+        .split(area[0]);
+
+    
+
+}
+
 fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
     let stats_layout = Layout::default()
         .direction(Direction::Vertical)
@@ -235,6 +247,7 @@ fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
         .block(decks_title_block);
     frame.render_widget(decks_title, stats_layout[0]);
 
+    // Split the larger part of the block into smaller columns for each stat.
     let stats_table = Layout::default()
         .direction(Direction::Horizontal)
         .constraints(vec![
@@ -245,8 +258,38 @@ fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
             Constraint::Percentage(18), // Win rate
             Constraint::Percentage(18), // Avr mulligan
         ])
-        .margin(2)
         .split(stats_layout[1]);
+
+    // For each column add a title and the stats
+    let deck_column = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(90)])
+        .split(stats_table[0]);
+
+    let num_games_column = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(90)])
+        .split(stats_table[1]);
+
+    let play_draw_column = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(90)])
+        .split(stats_table[2]);
+
+    let wins_column = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(90)])
+        .split(stats_table[3]);
+
+    let win_rate_column = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(90)])
+        .split(stats_table[4]);
+
+    let mulls_column = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(90)])
+        .split(stats_table[5]);
 
     // if Player has a deck selected we'll show the stats
     if !app.p_deck.is_empty() && !app.player.is_empty() {
@@ -262,7 +305,7 @@ fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
 
                 for (d, n) in stats.deck_played_against.iter() {
                     // Adding deck names list
-                    let mut text_width = stats_table[0].width.saturating_sub(2) as usize;
+                    let mut text_width = deck_column[1].width.saturating_sub(2) as usize;
                     let mut format =
                         format!("{:^width$}", format!("{}", d), width = text_width.clone());
                     deck_names.push(ListItem::new(Line::from(Span::styled(
@@ -271,7 +314,7 @@ fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
                     ))));
 
                     // Adding number of games played against decks
-                    text_width = stats_table[1].width.saturating_sub(2) as usize;
+                    text_width = num_games_column[1].width.saturating_sub(2) as usize;
                     format = format!("{:^width$}", format!("{}", n), width = text_width.clone());
                     deck_num_games.push(ListItem::new(Line::from(Span::styled(
                         format!("{: <25}", format.clone()),
@@ -281,7 +324,7 @@ fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
                     // Adding Play/Draw order
                     let _p = stats.play_draw_order.get(d).unwrap();
                     let _d = (_p - n).abs();
-                    text_width = stats_table[2].width.saturating_sub(2) as usize;
+                    text_width = play_draw_column[1].width.saturating_sub(2) as usize;
                     format = format!(
                         "{:^width$}",
                         format!("{}/{}", _p, _d),
@@ -294,7 +337,7 @@ fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
 
                     // Adding number of wins against the deck
                     let _w = stats.wins_against.get(d).unwrap();
-                    text_width = stats_table[3].width.saturating_sub(2) as usize;
+                    text_width = wins_column[1].width.saturating_sub(2) as usize;
                     format = format!("{:^width$}", format!("{}", _w), width = text_width.clone());
                     wins.push(ListItem::new(Line::from(Span::styled(
                         format!("{}", format.clone()),
@@ -303,7 +346,7 @@ fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
 
                     // Adding number of wins against the deck
                     let _mull = stats.avr_mull.get(d).unwrap();
-                    text_width = stats_table[4].width.saturating_sub(2) as usize;
+                    text_width = mulls_column[1].width.saturating_sub(2) as usize;
                     format = format!(
                         "{:^width$}",
                         format!("{}", _mull),
@@ -316,7 +359,7 @@ fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
 
                     // Adding win rate of deck
                     let _wr = stats.win_rate.get(d).unwrap();
-                    text_width = stats_table[5].width.saturating_sub(2) as usize;
+                    text_width = win_rate_column[1].width.saturating_sub(2) as usize;
                     format = format!("{:^width$}", format!("{}", _wr), width = text_width.clone());
                     wr.push(ListItem::new(Line::from(Span::styled(
                         format!("{}", format.clone()),
@@ -350,12 +393,94 @@ fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
                 let deck_avr_mull_list = List::new(mulls).block(deck_avr_mull_block);
                 let deck_win_rate_list = List::new(wr).block(deck_win_rate_block);
 
-                frame.render_widget(deck_names_list, stats_table[0]);
-                frame.render_widget(deck_num_games_list, stats_table[1]);
-                frame.render_widget(deck_play_draw_list, stats_table[2]);
-                frame.render_widget(deck_wins_list, stats_table[3]);
-                frame.render_widget(deck_avr_mull_list, stats_table[4]);
-                frame.render_widget(deck_win_rate_list, stats_table[5]);
+
+                // Render the title for the deck column
+                let deck_column_title_width = deck_column[0].width.saturating_sub(2) as usize;
+                let text = format!("{:^width$}", format!("Deck"), width = deck_column_title_width.clone());
+                let deck_column_name_block = Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::DarkGray));
+                let paragraph = Paragraph::new(Span::styled(
+                        format!("{}", text.clone()),
+                        Style::default().fg(Color::Red),
+                    ))
+                    .block(deck_column_name_block);
+                frame.render_widget(paragraph, deck_column[0]);
+                
+                // Render the title for the number of games column
+                let num_games_column_title_width = num_games_column[0].width.saturating_sub(2) as usize;
+                let text = format!("{:^width$}", format!("Number of games"), width = num_games_column_title_width.clone());
+                let num_games_column_name_block = Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::DarkGray));
+                let paragraph = Paragraph::new(Span::styled(
+                        format!("{}", text.clone()),
+                        Style::default().fg(Color::Red),
+                    ))
+                    .block(num_games_column_name_block);
+                frame.render_widget(paragraph, num_games_column[0]);
+
+                // Render the title for the number of games column
+                let play_draw_column_title_width = play_draw_column[0].width.saturating_sub(2) as usize;
+                let text = format!("{:^width$}", format!("Play / Draw"), width = play_draw_column_title_width.clone());
+                let play_draw_column_name_block = Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::DarkGray));
+                let paragraph = Paragraph::new(Span::styled(
+                        format!("{}", text.clone()),
+                        Style::default().fg(Color::Red),
+                    ))
+                    .block(play_draw_column_name_block);
+                frame.render_widget(paragraph, play_draw_column[0]);
+
+                // Render the number of wins against the deck
+                let wins_column_title_width = wins_column[0].width.saturating_sub(2) as usize;
+                let text = format!("{:^width$}", format!("Wins"), width = wins_column_title_width.clone());
+                let wins_column_name_block = Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::DarkGray));
+                let paragraph = Paragraph::new(Span::styled(
+                        format!("{}", text.clone()),
+                        Style::default().fg(Color::Red),
+                    ))
+                    .block(wins_column_name_block);
+                frame.render_widget(paragraph, wins_column[0]);
+
+                // Render the average mulligan against the deck
+                let mulls_column_title_width = mulls_column[0].width.saturating_sub(2) as usize;
+                let text = format!("{:^width$}", format!("Average mulligan"), width = mulls_column_title_width.clone());
+                let mulls_column_name_block = Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::DarkGray));
+                let paragraph = Paragraph::new(Span::styled(
+                        format!("{}", text.clone()),
+                        Style::default().fg(Color::Red),
+                    ))
+                    .block(mulls_column_name_block);
+                frame.render_widget(paragraph, mulls_column[0]);
+
+
+                // Render the average win rate against the deck
+                let wr_column_title_width = win_rate_column[0].width.saturating_sub(2) as usize;
+                let text = format!("{:^width$}", format!("Average win rate"), width = wr_column_title_width.clone());
+                let wr_column_name_block = Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::DarkGray));
+                let paragraph = Paragraph::new(Span::styled(
+                        format!("{}", text.clone()),
+                        Style::default().fg(Color::Red),
+                    ))
+                    .block(wr_column_name_block);
+                frame.render_widget(paragraph, win_rate_column[0]);
+
+
+                // Renders the stats for each deck
+                frame.render_widget(deck_names_list, deck_column[1]);
+                frame.render_widget(deck_num_games_list, num_games_column[1]);
+                frame.render_widget(deck_play_draw_list, play_draw_column[1]);
+                frame.render_widget(deck_wins_list, wins_column[1]);
+                frame.render_widget(deck_avr_mull_list, mulls_column[1]);
+                frame.render_widget(deck_win_rate_list, win_rate_column[1]);
             }
             Err(err) => {
                 frame.render_widget(Clear, frame.area()); //this clears the entire screen and anything already drawn
