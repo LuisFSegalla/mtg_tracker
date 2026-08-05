@@ -1,6 +1,6 @@
 use ratatui::{
     Frame,
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout, Rect, Alignment},
     style::{Color, Style},
     text::{Line, Span, Text},
     widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
@@ -166,7 +166,6 @@ pub fn ui(frame: &mut Frame, app: &App) {
                 let name_text = Paragraph::new(app.player_name.clone()).block(name_block);
                 frame.render_widget(name_text, popup_chunks[0]);
             }
-            _ => {}
         }
     }
 
@@ -216,13 +215,41 @@ pub fn ui(frame: &mut Frame, app: &App) {
         let area = centered_rect(60, 25, frame.area());
         frame.render_widget(exit_paragraph, area);
     }
-}
 
-fn render_column(frame: &mut Frame, area: &[Rect]) {
-    let column = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints(vec![Constraint::Percentage(10), Constraint::Percentage(90)])
-        .split(area[0]);
+    if let CurrentScreen::HelpScreen = app.current_screen {
+        let popup_block = Block::default()
+            .title(Span::styled("Available commands", Style::default().fg(Color::Black)))
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray))
+            .style(Style::default()
+            .bg(Color::LightYellow)
+        );
+        let area = centered_rect(40, 25, frame.area());
+
+        let lines = vec![
+            "(p) Add a player to the database",
+            "(l) Load a player from the database",
+            "(g) Add a game for current player",
+            "(s) Select a deck",
+            "(d) Display selected deck stats"
+        ];
+
+        let text = Text::from(
+            lines
+                .into_iter()
+                .map(|l| Line::from(Span::styled(l, Style::default().fg(Color::Red))))
+                .collect::<Vec<_>>(),
+        );
+
+        // the `trim: false` will stop the text from being cut off when over the edge of the block
+        let exit_paragraph = Paragraph::new(text)
+            .block(popup_block).alignment(Alignment::Center)
+            .wrap(Wrap { trim: false });
+
+            frame.render_widget(exit_paragraph, area);
+    }
+
+
 }
 
 fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
@@ -558,6 +585,11 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
                 "Loading player from database screen",
                 Style::default().fg(Color::Blue),
             ),
+            CurrentScreen::HelpScreen => Span::styled(
+                "Available commands from the main screen",
+                Style::default().fg(Color::Blue),
+            ),
+
         }
         .to_owned(),
         // A white divider bar to separate the two sections
@@ -606,7 +638,7 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
     let current_keys_hint = {
         match app.current_screen {
             CurrentScreen::Main => Span::styled(
-                "(q) to quit / (e) Enter a player",
+                "(q) to quit / (h) open available commands menu",
                 Style::default().fg(Color::Red),
             ),
             CurrentScreen::Player => Span::styled(
@@ -641,11 +673,15 @@ fn render_footnotes(app: &App, frame: &mut Frame, chunks: &[Rect]) {
                 Style::default().fg(Color::Red),
             ),
             CurrentScreen::DeckSelector => Span::styled(
-                "(ESC) / (q) back deck editing screen",
+                "(ESC) / (q) back to main screen",
                 Style::default().fg(Color::Red),
             ),
             CurrentScreen::LoadPlayer => Span::styled(
-                "(ESC) back deck editing screen / (ENTER) to load from database",
+                "(ESC) back to deck editing screen / (ENTER) to load from database",
+                Style::default().fg(Color::Red),
+            ),
+            CurrentScreen::HelpScreen => Span::styled(
+                "(ESC) back to main screen",
                 Style::default().fg(Color::Red),
             ),
         }

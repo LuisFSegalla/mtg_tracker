@@ -88,15 +88,28 @@ fn run_app(
                         app.current_screen = CurrentScreen::LoadPlayer;
                         app.current_editing_player = Some(CurrentlyEditingPlayer::LoadPlayer);
                     }
-                    KeyCode::Char('e') => {
+                    KeyCode::Char('g') => {
                         app.current_screen = CurrentScreen::AddGame;
                         app.current_editing_game = Some(CurrentlyEditingGame::Format);
+                    }
+                    KeyCode::Char('s') => {
+                        app.current_screen = CurrentScreen::DeckSelector;
                     }
                     KeyCode::Char('d') => {
                         app.current_screen = CurrentScreen::Display;
                     }
                     KeyCode::Char('q') => {
                         app.current_screen = CurrentScreen::Exiting;
+                    }
+                    KeyCode::Char('h') => {
+                        app.current_screen = CurrentScreen::HelpScreen;
+                    }
+
+                    _ => {}
+                },
+                CurrentScreen::HelpScreen => match key.code {
+                    KeyCode::Esc => {
+                        app.current_screen = CurrentScreen::Main;
                     }
                     _ => {}
                 },
@@ -239,22 +252,22 @@ fn run_app(
                             let _ = add_player(db, &p);
                             let p = get_player_names(db)?;
                             app.add_player(&p);
-                        }
+                        },
                         KeyCode::Backspace => {
                             app.player_name.pop();
-                        }
+                        },
                         KeyCode::Esc => {
                             app.current_screen = CurrentScreen::Main;
                             app.current_editing_player = None;
                             app.current_editing_game = None;
                             app.player_name = "".to_string();
-                        }
+                        },
                         KeyCode::Char(value) => {
                             app.player_name.push(value);
-                        }
+                        },
                         _ => {}
                     }
-                }
+                },
                 CurrentScreen::LoadPlayer if key.kind == KeyEventKind::Press => match key.code {
                     KeyCode::Char(value) => {
                         app.player_name.push(value);
@@ -316,7 +329,7 @@ fn run_app(
                 },
                 CurrentScreen::DeckSelector => match key.code {
                     KeyCode::Enter => {
-                        app.current_screen = CurrentScreen::AddGame;
+                        app.current_screen = CurrentScreen::Main;
                         app.deck_index = 0;
                     }
                     KeyCode::Tab => {

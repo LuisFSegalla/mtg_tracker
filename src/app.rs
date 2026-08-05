@@ -13,6 +13,7 @@ pub enum CurrentScreen {
     Display,
     ErrorPLayerNotFound,
     DeckSelector,
+    HelpScreen,
 }
 
 pub enum CurrentlyEditingGame {
