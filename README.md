@@ -1,4 +1,4 @@
-# mtg_tracker# Magic the Gathering stats tracker
+# Magic the Gathering stats tracker
 
 An app for tracking results in Modern and Pauper games. You can save matches and get stats based on each deck you added.
 
