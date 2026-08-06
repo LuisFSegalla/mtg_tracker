@@ -39,6 +39,6 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/app /usr/local/bin/app
+COPY --from=build /app/target/release/app /usr/local/bin/app
 
 ENTRYPOINT ["app"]
