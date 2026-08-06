@@ -1,8 +1,8 @@
 use crate::game::Game;
 use crate::player::Player;
-use log::{error, info, warn};
+use log::{info};
 use rusqlite::{Connection, Result, params};
-use std::{error::Error, println};
+use std::{error::Error};
 
 pub fn player_exists(conn: &Connection, key: &String) -> Result<bool> {
     info!("Checking if {} is in the Database.", key);
@@ -17,7 +17,7 @@ pub fn player_exists(conn: &Connection, key: &String) -> Result<bool> {
 }
 
 pub fn create_table() -> Result<Connection, Box<dyn Error>> {
-    let conn = Connection::open("/workspaces/mtg_tracker/my_db.db3")?;
+    let conn = Connection::open("/tmp/my_db.db3")?;
     conn.execute(
         "CREATE TABLE IF NOT EXISTS player (
             id   INTEGER PRIMARY KEY,

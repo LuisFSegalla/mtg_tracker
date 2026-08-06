@@ -274,8 +274,8 @@ fn render_display(app: &App, frame: &mut Frame, area: &[Rect]) {
     let stats_table = Layout::default()
         .direction(Direction::Horizontal)
         .constraints(vec![
-            Constraint::Percentage(18), // decks
-            Constraint::Percentage(10), // Num Games
+            Constraint::Percentage(14), // decks
+            Constraint::Percentage(14), // Num Games
             Constraint::Percentage(18), // P/D
             Constraint::Percentage(18), // Wins
             Constraint::Percentage(18), // Win rate
