@@ -1,16 +1,21 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-# [derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Order {
     Play,
-    Draw
+    Draw,
 }
 
-# [derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Format {
+    Pauper,
+    Modern,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Game {
     pub format: String,
     pub p_deck: String,
-    pub p_mull: i32,
+    pub p_mull: u8,
     pub p_order: Order,
     pub opp_deck: String,
     pub win: bool,
